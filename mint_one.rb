@@ -61,7 +61,7 @@ class CoinSet
 		results
 	end
 	def average; (@score * 1.0)/(80 + (19*$frequency)) end #Returns the weighted average
-	def to_s; coins.join "," end
+	def to_s; @coins.join "," end
 end
 #####################################
 $frequency = gets.to_f #Get the frequency of multiples of 5
