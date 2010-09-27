@@ -64,7 +64,9 @@ class CoinSet
 	def to_s; @coins.join "," end
 end
 #####################################
+puts "Please enter the N (frequency):"
 $frequency = gets.to_f #Get the frequency of multiples of 5
+puts "You entered '#{$frequency}'"
 $idents = []
 start_time = Time.now
 res = ResultStore.new
@@ -81,6 +83,6 @@ while Time.now - start_time < 29 #How many seconds to quit out at
   current.checked = true
 end
 best = res.best_result
-puts "Best set found: #{best.to_s}\nScore: #{best.score}\tWeighted Avg: #{best.average}\nCounts: #{best.counts.join ','}"
+puts "Best set found: 1,#{best.to_s}\nScore: #{best.score}\tWeighted Avg: #{best.average}\nCounts: #{best.counts.join ','}"
 puts (Time.now - start_time).to_s + " seconds elapsed."
 puts res.storage.size.to_s + " combinations attempted."

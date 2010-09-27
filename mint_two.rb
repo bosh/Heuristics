@@ -23,18 +23,30 @@ class CoinSet
 	def initialize(coins)
 		@checked = false
 		@coins = coins.sort
-		@counts = Array.new(100, [99, false])
+		@counts = Array.new(100, 99)
 		calculate_score
 	end
 	def calculate_score #Sets the score and counts.
 		@coins.each{|c| @counts[c] = 1; @counts[100-c] = 1} # Finding the base case 1-coin sets
-		
-		<<-IDEA
-			select all falses from coins, find the minimum number associated
-			from that, get all values +- one coin value. set those to currentval + 1 || their min
-			set current's false to a true
-			continue until every false is gone (optimization, increment a counter until it reaches 100)
-		IDEA
+		@counts[0] = 0
+		continue = true
+		iteration = 0
+		while continue
+			continue = false
+			iteration += 1
+			current_set = []
+			(1..@counts.length).each do |value|
+				current_set << value if @counts[value] == iteration
+			end
+			current_set.each do |value|
+				@coins.each do |coin|
+					count = @counts[value]
+					@counts[value + coin] = [count + 1, @counts[value + coin]].min unless value + coin > 99
+					@counts[value - coin] = [count + 1, @counts[value - coin]].min unless value - coin < 1
+				end
+			end
+			continue = true if current_set.size > 0
+		end
 		@score = 0
 		@counts.each_with_index.map do |c,i|
 			@score += (i%5==0)? c*$frequency : c
@@ -48,7 +60,7 @@ class CoinSet
 				set = @coins.sort
 				set[coin] = set[coin] + delta #Change the individual coin in the set
 				set.sort!
-				results << set unless (set.min < 1 || set.max > 99 || set.uniq.size < 5) #Discard if invalid coin values or duplicates
+				results << set unless (set.min <= 1 || set.max > 99 || set.uniq.size < 5 || set.map{|v| v%2}.inject{|s,v| s+=v} == 0 || set.map{|v| v%5}.inject{|s,v| s+=v} == 0) #Discard if invalid coin values or duplicates
 			end
 		end
 		results
@@ -57,18 +69,21 @@ class CoinSet
 	def to_s; @coins.join "," end
 end
 #####################################
+puts "Please enter the N (frequency):"
 $frequency = gets.to_f #Get the frequency of multiples of 5
+puts "You entered '#{$frequency}'"
 $idents = []
 start_time = Time.now
 res = ResultStore.new
 seeds = [	[1,5,10,25,50], #Standard US
 			[1,3,11,37,50], #Internet recommended!
-			[1,5,16,23,33], #From test data for N == 1
-			[1,5,7,25,40],  #From test data for low N's
-			[1,5,20,30,45]  #From test data for high N's
+			[1,7,11,16,40], #From test data for N == 1
+			[3,7,16,18,44], #From test data for N == 0.5
+			[1,5,8,25,40],  #From test data for low N's
+			[2,5,20,30,45]  #From test data for high N's
 		]
 seeds.each{|seed| res.add_result(seed)} #Seed the data with a decent selection of starting sets
-while Time.now - start_time < 29 #How many seconds to quit out at
+while Time.now - start_time < 39 #How many seconds to quit out at
   current = res.best_unchecked_result
   current.create_descendants.each{|d| res.add_result d }
   current.checked = true
