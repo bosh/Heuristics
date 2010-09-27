@@ -1,6 +1,6 @@
 class ResultStore
 	attr_accessor		:storage
-	def initialize;		@storage = []			end
+	def initialize;		@storage = [] end
 	def identify;		$idents	end #OPTIMIZATION ON LOOKUPS
 	def best_unchecked_result #Returns the next-best choice to descend from, as the descendant algorithm is deterministic and thus pointless to re-run on a single best set
 		unchecked = @storage.reject{|cs| cs.checked}
@@ -83,7 +83,7 @@ seeds = [	[1,5,10,25,50], #Standard US
 			[2,5,20,30,45]  #From test data for high N's
 		]
 seeds.each{|seed| res.add_result(seed)} #Seed the data with a decent selection of starting sets
-while Time.now - start_time < 39 #How many seconds to quit out at
+while Time.now - start_time < 119 #How many seconds to quit out at
   current = res.best_unchecked_result
   current.create_descendants.each{|d| res.add_result d }
   current.checked = true
