@@ -83,7 +83,9 @@ seeds = [	[1,5,10,25,50], #Standard US
 			[2,5,20,30,45]  #From test data for high N's
 		]
 seeds.each{|seed| res.add_result(seed)} #Seed the data with a decent selection of starting sets
+attempts = 0
 while Time.now - start_time < 119 #How many seconds to quit out at
+  attempts += 1
   current = res.best_unchecked_result
   current.create_descendants.each{|d| res.add_result d }
   current.checked = true
@@ -91,4 +93,4 @@ end
 best = res.best_result
 puts "Best set found: #{best.to_s}\nScore: #{best.score}\tWeighted Avg: #{best.average}\nCounts: #{best.counts.join ','}"
 puts (Time.now - start_time).to_s + " seconds elapsed."
-puts res.storage.size.to_s + " combinations attempted."
+puts "Top #{attempts} examined, #{res.storage.size} combinations attempted."

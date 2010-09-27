@@ -48,8 +48,8 @@ class CoinSet
 #    	deltas = [-5, -2, -1, 1,2,5] #Fewer delta cases to try more things quickly
 #    	deltas = [-5,-4,-3,-2,-1,1,2,3,4,5] #More deltas near the coinset to cover every possibility
 #    	deltas = [-10,-7,-5,-3,-1,1,3,5,7,10] #Wide and shallow coverage of deltas because the chance that every possible delta needs to be checked is small
-#    	deltas = [-17, -13] + (-10..-1).to_a + (1..10).to_a + [13, 17] #Deep central coverage with possibilities further away too
-		deltas = (-21..-1).to_a + (1..21).to_a
+    	deltas = [-17, -13] + (-11..-1).to_a + (1..11).to_a + [13, 17] #Deep central coverage with possibilities further away too
+#		deltas = (-21..-1).to_a + (1..21).to_a
 		deltas.each do |delta|
 			(0...4).each do |coin| #For each possible coin to change
 				set = @coins.sort
@@ -77,7 +77,9 @@ seeds = [	[5,10,25,50], #Standard US
 			[5,20,30,45]  #From test data for high N's
 		]
 seeds.each{|seed| res.add_result(seed)} #Seed the data with a decent selection of starting sets
+attempts = 0
 while Time.now - start_time < 119 #How many seconds to quit out at
+  attempts += 1
   current = res.best_unchecked_result
   current.create_descendants.each{|d| res.add_result d }
   current.checked = true
@@ -85,4 +87,4 @@ end
 best = res.best_result
 puts "Best set found: 1,#{best.to_s}\nScore: #{best.score}\tWeighted Avg: #{best.average}\nCounts: #{best.counts.join ','}"
 puts (Time.now - start_time).to_s + " seconds elapsed."
-puts res.storage.size.to_s + " combinations attempted."
+puts "Top #{attempts} examined, #{res.storage.size} combinations attempted."
