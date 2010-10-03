@@ -84,7 +84,7 @@ seeds = [	[1,5,10,25,50], #Standard US
 		]
 seeds.each{|seed| res.add_result(seed)} #Seed the data with a decent selection of starting sets
 attempts = 0
-while Time.now - start_time < 59 #How many seconds to quit out at
+while Time.now - start_time < 9 #How many seconds to quit out at
   attempts += 1
   current = res.best_unchecked_result
   current.create_descendants.each{|d| res.add_result d }
