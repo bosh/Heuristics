@@ -1,3 +1,6 @@
+# require 'rubygems'
+# gem 'algorithms', '= 0.3.0'
+
 class FullPath
 	attr_accessor :points, :paths, :total_solution_distance
 	def initialize
@@ -29,12 +32,41 @@ class PathSet
 	def initialize(pointset)
 		points = pointset.points
 		(2...points.length).each {|i| $paths[i] ||= []; (1...i).each {|j| $paths[j] ||= []; $paths[i][j] = $paths[j][i] = points[i].distance_to(points[j])}}
-		@paths = create_mst(points)
+		@paths = create_mst(pointset)
 		optimize! until time_up?
 	end
-	def create_mst(points)
+	def create_mst(pointset)
 		connections = []
-		#prims here into connections
+
+
+
+####### DISCARDED ##############
+# 		points = pointset.points
+		
+# 		inf = 0**-1
+# 		min_distance = Array.new(points.length, inf)
+# 		parents = Array.new(points.length, nil)
+# 		min_adj_list = Array.new(points.length, [])
+# 		is_in_q = Array.new(points.length, true)
+		
+# 		min_distance[points[1].number] = 0
+# 		is_in_q[points[1].number] = false
+
+# 		heap = pointset.points.reject(&: nil?).map {|p| [points[1].distance_to(p), p]}.sort_by{|(v,p)| v}
+# 		heap.shift #gets rid of start point
+		
+# 		while (dist, current_point) = q.shift
+# 			is_in_q[current_point.number] = false
+# 			min_adj_list[current_point.number][current_point.parent.number] = true
+# 			min_adj_list[current_point.parent.number][current_point.number] = true
+# 		end
+
+# for each adjacent of latest_addition
+# if (is_in_Q of adjacent) and (weight-function(latest_addition, adjacent) < min_distance of adjacent)
+#     set parent of adjacent to latest_addition
+#     set min_distance of adjacent to weight-function(latest_addition, adjacent)
+
+#     update adjacent in Q, order by min_distance
 		connections
 	end
 	def optimize!
