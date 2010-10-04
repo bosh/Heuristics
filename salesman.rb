@@ -33,6 +33,7 @@ class PathSet
 		points = pointset.points
 		(2...points.length).each {|i| $paths[i] ||= []; (1...i).each {|j| $paths[j] ||= []; $paths[i][j] = $paths[j][i] = points[i].distance_to(points[j])}}
 		@paths = create_mst(pointset)
+		preoptimize!
 		optimize! until time_up?
 	end
 	def create_mst(pointset)
@@ -57,10 +58,20 @@ class PathSet
 			end
 			current = points[index]
 		end
-		distances[1..-1]
+		generate_paths(distances)
+	end
+	def generate_paths(distances)
+		
+	end
+	def preoptimize!
+		#HNNNNG!
+		#find all nodes with odd connections
+		#join them with an MST
+		#repeat until there are no nodes with odd connections
 	end
 	def optimize!
-		#HNNNNG!
+		#find a node with more than two connectors
+		#take all combinations of reductions and use the best
 	end
 	def calculate_distance
 		@paths.inject{|sum,path| sum += path}#path.distance}
@@ -83,9 +94,7 @@ class Point
 	end
 	def distance_to(point) #Calulates the distance to another point. Could use lookup
 		coords = [self, point].map{|p| [p.x, p.y, p.z]}
-		sum = 0
-		(0..2).each{|i| sum += (coords[0][i] - coords[1][i])**2 }
-		sum**0.5
+		(0..2).inject{|val, i| val += (coords[0][i] - coords[1][i])**2}**0.5
 	end
 end
 
@@ -113,4 +122,3 @@ $paths = [] # Distance calculation store
 results = FullPath.new
 puts "\t\t**Algorithm Stopped**\nTime Elapsed: #{Time.now - $start_time} seconds\n"
 puts results
-#save out the results to a text file
