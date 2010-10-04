@@ -9,7 +9,7 @@ class FullPath
 		@total_solution_distance = @paths.calculate_distance
 	end
 	def to_s
-		"Total Distance: #{@total_solution_distance}\nPaths:\n#{@paths}"
+		"Total Distance: #{@total_solution_distance}"#\nPaths:\n#{@paths}"
 	end
 end
 
@@ -36,44 +36,34 @@ class PathSet
 		optimize! until time_up?
 	end
 	def create_mst(pointset)
-		connections = []
-
-
-
-####### DISCARDED ##############
-# 		points = pointset.points
-		
-# 		inf = 0**-1
-# 		min_distance = Array.new(points.length, inf)
-# 		parents = Array.new(points.length, nil)
-# 		min_adj_list = Array.new(points.length, [])
-# 		is_in_q = Array.new(points.length, true)
-		
-# 		min_distance[points[1].number] = 0
-# 		is_in_q[points[1].number] = false
-
-# 		heap = pointset.points.reject(&: nil?).map {|p| [points[1].distance_to(p), p]}.sort_by{|(v,p)| v}
-# 		heap.shift #gets rid of start point
-		
-# 		while (dist, current_point) = q.shift
-# 			is_in_q[current_point.number] = false
-# 			min_adj_list[current_point.number][current_point.parent.number] = true
-# 			min_adj_list[current_point.parent.number][current_point.number] = true
-# 		end
-
-# for each adjacent of latest_addition
-# if (is_in_Q of adjacent) and (weight-function(latest_addition, adjacent) < min_distance of adjacent)
-#     set parent of adjacent to latest_addition
-#     set min_distance of adjacent to weight-function(latest_addition, adjacent)
-
-#     update adjacent in Q, order by min_distance
-		connections
+		points = pointset.points
+		inf = 0**-1
+		distances = Array.new(points.length, inf)
+		visited = Array.new(points.length, false)
+		current = points[1]
+		distances[current.number] = 0
+		while current #visited.reject{|val| val == nil || val == true}.size > 0
+			points.each do |neighbor|
+				next if neighbor.nil? || visited[neighbor.number] || current == neighbor
+				distances[neighbor.number] = [distances[neighbor.number], $paths[current.number][neighbor.number]].min
+			end
+			visited[current.number] = true
+			min = inf
+			index = 0
+			distances.each_with_index do |d, i|
+				next if d == nil || visited[i]
+				min = [d, min].min
+				index = i if min == d
+			end
+			current = points[index]
+		end
+		distances[1..-1]
 	end
 	def optimize!
 		#HNNNNG!
 	end
 	def calculate_distance
-		@paths.inject{|sum,path| sum += path.distance}
+		@paths.inject{|sum,path| sum += path}#path.distance}
 	end
 	def to_s
 		@paths.join(",")
