@@ -66,11 +66,19 @@ class PathSet
 		# paths.each{|p| print "#{p.endpoints}\t"}
 		paths
 	end
-	def preoptimize!
-		#HNNNNG!
-		#find all nodes with odd connections
-		#join them with an MST
-		#repeat until there are no nodes with odd connections
+	def preoptimize! #HNNNNG!
+		counts = Array.new(1001, 0) #lol hardcoded
+		endpoints = @paths.map{|path| path.endpoints.map{|point| point.number}}.flatten
+		endpoints.each{|e| counts[e] += 1}
+		until counts.reject{|c| c%2 == 0}.size > 0 do
+
+
+
+			####Determine reentry
+			endpoints = @paths.map{|path| path.endpoints.map{|point| point.number}}.flatten
+			counts = Array.new(1001, 0) #lol hardcoded
+			endpoints.each{|e| counts[e] += 1}
+		end
 	end
 	def optimize!
 		#find a node with more than two connectors
