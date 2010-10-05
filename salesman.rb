@@ -8,9 +8,7 @@ class FullPath
 		@paths = PathSet.new(@points)
 		@total_solution_distance = @paths.calculate_distance
 	end
-	def to_s
-		"Total Distance: #{@total_solution_distance}"#\nPaths:\n#{@paths}"
-	end
+	def to_s; "Total Distance: #{@total_solution_distance}" end #\nPaths:\n#{@paths}"
 end
 
 class PointSet
@@ -58,10 +56,15 @@ class PathSet
 			end
 			current = points[index]
 		end
-		generate_paths(distances)
+		generate_paths(points, distances)
 	end
-	def generate_paths(distances)
-		
+	def generate_paths(points, distances)
+		pointers = []
+		(2...distances.length).each{|i| pointers[i] = $paths[i].index(distances[i])}
+		paths = []
+		pointers.each_with_index {|p, i| paths << Path.new(points[p], points[i]) if p && i}
+		# paths.each{|p| print "#{p.endpoints}\t"}
+		paths
 	end
 	def preoptimize!
 		#HNNNNG!
@@ -72,13 +75,17 @@ class PathSet
 	def optimize!
 		#find a node with more than two connectors
 		#take all combinations of reductions and use the best
+
+		#find a segment that is close to another point (requires line calculation and distance to point finding)
+		#delete the segment and join the endpoints to the close point. attempt to run the optimizer
+		#mark as checked if it goes back to where it was
 	end
 	def calculate_distance
-		@paths.inject{|sum,path| sum += path}#path.distance}
+		sum = 0
+		@paths.each{|path| sum += path.distance}
+		sum
 	end
-	def to_s
-		@paths.join(",")
-	end
+	def to_s; @paths.join(", ") end
 end
 
 class Point
@@ -89,9 +96,8 @@ class Point
 		@y = y
 		@z = z
 	end
-	def to_data
-		[@number, @x, @y, @z]
-	end
+	def to_s; "<#{to_data.join ", "}>\t" end
+	def to_data; [@number, @x, @y, @z] end
 	def distance_to(point) #Calulates the distance to another point. Could use lookup
 		coords = [self, point].map{|p| [p.x, p.y, p.z]}
 		(0..2).inject{|val, i| val += (coords[0][i] - coords[1][i])**2}**0.5
@@ -106,12 +112,8 @@ class Path
 		@xuid = @uid.reverse
 		@distance = find_distance
 	end
-	def find_distance #Calculates the distance and saves it to a lookup table
-		$paths[@uid.first][@uid.last]
-	end
-	def connects_to?(point)
-		@endpoints.include? point
-	end
+	def find_distance; $paths[@uid.first][@uid.last] end
+	def connects_to?(point); @endpoints.include? point end
 end
 
 def time_up?; Time.now - $start_time > $seconds_to_run end
