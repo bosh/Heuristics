@@ -63,7 +63,6 @@ class PathSet
 		(2...distances.length).each{|i| pointers[i] = $paths[i].index(distances[i])}
 		paths = []
 		pointers.each_with_index {|p, i| paths << Path.new(points[p], points[i]) if p && i}
-		# paths.each{|p| print "#{p.endpoints}\t"}
 		paths
 	end
 	def preoptimize! #HNNNNG!
@@ -71,9 +70,10 @@ class PathSet
 		endpoints = @paths.map{|path| path.endpoints.map{|point| point.number}}.flatten
 		endpoints.each{|e| counts[e] += 1}
 		until counts.reject{|c| c%2 == 0}.size > 0 do
-
-
-
+			to_add = []
+			#make mst of odd points
+			#add all those paths 
+			# to_add.each{|(one,two)| @paths << Path.new[]} # NEEDS ACCESS TO POINTS
 			####Determine reentry
 			endpoints = @paths.map{|path| path.endpoints.map{|point| point.number}}.flatten
 			counts = Array.new(1001, 0) #lol hardcoded
