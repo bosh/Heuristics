@@ -5,10 +5,10 @@ import java.net.Socket;
 public class Server {
 
 	ServerSocket serverSocket = null;
-	int port = 4445;
+	static int port = 4445;	//default
 
 	
-	public Server() {
+	public Server(int port) {
         try {
 			serverSocket = new ServerSocket(port);
 		} catch (IOException e1) {
@@ -16,8 +16,9 @@ public class Server {
 			e1.printStackTrace();
 		}
 
+		System.out.println("Accepting connections on port " + port);
 		int i = 0;
-		while (i < 2) {	//waits for 2 clients to connect. Once they both disconnenct the server terminates. 
+		while (i <= 2) {	//waits for 2 clients to connect. Once they both disconnenct the server terminates. 
             Socket clientSocket = null;
 
             try {
@@ -33,10 +34,14 @@ public class Server {
                 i++;
             } catch (IOException e) {
                 System.out.println("could not accept connection on port " + port);
-            }
+            } 
 
         }
 
+	}
+	
+	public Server() {
+		this(port);
 	}
 	
 	public boolean getStopProcessing() {
@@ -46,9 +51,23 @@ public class Server {
 	public static void main(String[] args) {
 
 		System.out.println("Start");
-		Server s = new Server();
-        System.out.println("Disconnecting");
+		try {
+			if (args.length > 0) {
+				port = Integer.parseInt(args[0]);
+			}	
+		} catch (Exception e) {
+			System.out.println("Invalid port");
+		} finally {
+			Server s = new Server();
+		}
+      //  System.out.println("Disconnecting");
   
 	}
+	
+	public static void forceClose() {
+		System.exit(-1);
+	}
+	
 
 }
+

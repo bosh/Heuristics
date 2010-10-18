@@ -14,6 +14,8 @@ public class ServerConnection implements Runnable {
 	private String tag="";
 	private static GameState game = new GameState();
 	private long elapsed_time = 0;
+	private String gameapplet = "NoTippingApplet";
+
 	
 	//store all the avalaible weights in a hashtable. The key is the weight (1-10) and the value indicates if the weight is 
 	//available. Once a client uses a weight, the value changes to false.
@@ -76,13 +78,15 @@ public class ServerConnection implements Runnable {
 			inputLine = inputLine.trim();
 			setTag(inputLine);
 			System.out.println("Connected with client " + getTag());
-			out.println("Connected accpeted for " + getTag());
+			out.println("Connection accpeted for " + getTag());
 			
-			if (game.getCurrent_player() == null) {
-				game.setCurrent_player(tag);
-				System.out.println("Setting " + tag + " as current player");
+			if (!tag.equals(gameapplet)) {
+				if (game.getCurrent_player() == null) {
+					game.setCurrent_player(tag);
+					System.out.println("Setting " + tag + " as current player");
+				}
+				game.getPlayers().add(tag);
 			}
-			game.getPlayers().add(tag);
 
 			interactWithClient();
 		} catch (Exception e) {
@@ -101,18 +105,41 @@ public class ServerConnection implements Runnable {
 	}
 	
 
+	private static String new_game_message = "";
+	private static String prev_game_message = "";
+	
 	public void interactWithClient() {
 		String inputline="";
+		
+		if (this.tag.equals(gameapplet)) {
+			setNew_game_message("");
+			for (String s:game.getPlayers()) {
+				setNew_game_message(getNew_game_message() + "ADDPLAYER|" + s + "\n");			
+			}
+		} else {
+			setNew_game_message("ADDPLAYER|" + this.getTag());
+		}
+		
 		try {
 			
 			while (game.isGameInProgress()) {
+				
+
+				if (this.tag.equals(gameapplet)) {
+					if (!getPrev_game_message().equals(getNew_game_message())) {
+						setPrev_game_message(getNew_game_message());
+						out.println(getNew_game_message());
+						System.out.println(getNew_game_message());
+					}
+					continue;
+				}
 				
 				if (!this.tag.equals(game.getCurrent_player()))
 					continue;
 				
 				if (game.getPlayers().size() <  2)
 					continue;
-						
+										
 				String state = game.getMode() +"|" + game.getPositions() + "|in="+game.getRighttorque() + ",out="+game.getLefttorque();
 				System.out.println(state);
 				out.println(state);
@@ -127,6 +154,9 @@ public class ServerConnection implements Runnable {
 				if (elapsed_time/1000000000 > 120) {
 					out.println("TIMEOUT");
 					out.println("LOSE");
+					//setNew_game_message("RESULT|" + game.nextPlayer() + "|TIMEOUT");
+					setNew_game_message("TIMEOUT|" + this.tag);
+					game.removePlayer(this.getTag());
 					game.setGameInProgress(false);
 					break;
 				}
@@ -145,11 +175,12 @@ public class ServerConnection implements Runnable {
 					System.out.println("Client " + getTag() + " terminated connection");
 					out.println("Bye");
 					game.removePlayer(this.getTag());
+					setNew_game_message("REMOVEPLAYER|" + getTag() + "\n");
+					game.setCurrent_player(game.nextPlayer());
 					break;
 				} 
 				
 				String[] res = inputline.split(",");
-				
 				
 				if (game.getMode().equals("ADD")) {
 					if (weights.containsKey(res[0])) {
@@ -161,10 +192,13 @@ public class ServerConnection implements Runnable {
 									weights.put(res[0], false);
 									game.incrementWeights_used();
 									game.calculate_torque();
+									setNew_game_message("ADD|" + game.getCurrent_player() + "|" + inputline);
 									if (game.getRighttorque() > 0 || game.getLefttorque() > 0) { 
 										System.out.println("in=" + game.getRighttorque() + " & out=" + game.getLefttorque());
 										out.println("TIP");
 										out.println("LOSE");
+//										setNew_game_message("RESULT|" + game.nextPlayer() + "|TIP");										
+//										setNew_game_message("Bye");
 										game.removePlayer(this.getTag());
 										game.setGameInProgress(false);
 									}
@@ -173,6 +207,7 @@ public class ServerConnection implements Runnable {
 										if (game.getWeights_used() >= 20) {
 											game.setMode("REMOVE");
 										}
+
 										game.setCurrent_player(game.nextPlayer());
 									}
 								} else {
@@ -196,6 +231,7 @@ public class ServerConnection implements Runnable {
 							game.getPosition_weights()[pos+15] = -1;
 							game.decrementWeights_used();
 							game.calculate_torque();
+							setNew_game_message("REMOVE|" + game.getCurrent_player() + "|" + inputline);
 							if (game.getRighttorque() > 0 || game.getLefttorque() > 0) { 
 								System.out.println("in=" + game.getRighttorque() + " & out=" + game.getLefttorque());
 								out.println("TIP");
@@ -225,8 +261,19 @@ public class ServerConnection implements Runnable {
 				}
 				inputline = "";
 			}
+			
+			if (getNew_game_message().startsWith("TIMEOUT") && this.tag.equals("NoTippingApplet")) {
+				out.println(new_game_message);
+			}
+			
 			if (!game.isGameInProgress() && !this.tag.equals(game.getCurrent_player()))
 				out.println("WIN");
+			
+			setNew_game_message("REMOVEPLAYER|" + getTag() + "\n");
+			
+			if (game.getPlayers().size() <= 0)
+				Server.forceClose();
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -240,5 +287,23 @@ public class ServerConnection implements Runnable {
 	public void setTag(String tag) {
 		this.tag = tag;
 	}
+	
+	public synchronized String getNew_game_message () {
+		return new_game_message;
+	}
+
+	public synchronized void setNew_game_message (String message) {
+		new_game_message = message;
+	}
+
+	public synchronized String getPrev_game_message () {
+		return prev_game_message;
+	}
+
+	public synchronized void setPrev_game_message (String message) {
+		prev_game_message = message;
+	}
+
 
 }
+
