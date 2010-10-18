@@ -25,12 +25,14 @@ public class Client {
         out.println(clientName);
 
         while ((fromServer = in.readLine()) != null) {
+            String response = "";
             System.out.println("Server: " + fromServer);
-            if (fromServer.equals("Bye"))
+            if (fromServer.equals("Bye")) {
                 break;
-            if (((fromServer.startsWith("ADD")) || (fromServer.startsWith("REMOVE")))) {
-                fromUser = stdIn.readLine();
-                if (fromUser != null) { out.println(fromUser); }
+            } else if (fromServer.startsWith("ADD")) {
+                out.println(response);
+            } else if (fromServer.startsWith("REMOVE")) {
+                out.println(response);
             }
         }
         out.close();
