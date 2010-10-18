@@ -7,7 +7,7 @@ public class Client {
         Socket socket = null;
         PrintWriter out = null;
         BufferedReader in = null;
-        String clientName = "BOSH";
+        String clientName = "B0$H";
         String location = "localhost";
         try {
             socket = new Socket(location, 4445);
@@ -20,13 +20,14 @@ public class Client {
             System.err.println("Couldn't get I/O for the connection to: " + location + ".");
             System.exit(1);
         }
-        BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
         String fromServer;
-        String fromUser;
         out.println(clientName);
 
-        boolean[] weights_self = new boolean[10];
-        boolean[] weights_opp = new boolean[10];
+        int weight_count = 10; //Initialize weight trackers
+        boolean[] weights_self = new boolean[weight_count];
+        java.util.Arrays.fill(weights_self,false);
+        boolean[] weights_opp = new boolean[weight_count];
+        java.util.Arrays.fill(weights_opp,false);
 
         while ((fromServer = in.readLine()) != null) {
             if (fromServer.equals("Bye")) { break; }
@@ -35,21 +36,28 @@ public class Client {
             String response = "";
             String[] matches = Pattern.compile("[|]").split(fromServer);
             String[] placements = Pattern.compile(" ").split(matches[1]);
+            int[] counts = new int[placements.length];
+            java.util.Arrays.fill(counts,0);
             int[] weights = new int[placements.length];
             int[] positions = new int[placements.length];
-            for(int i = 0; i < placements.length; i++) {
+            
+            for(int i = 0; i < placements.length; i++) { //Split server data into program usable info
                 String[] placement = Pattern.compile(",").split(placements[i]);
                 int weight = Integer.parseInt(placement[0].trim());
                 int position = Integer.parseInt(placement[1].trim());
+                counts[weight]++;
+                if ((counts[weight] == 2) || ((counts[weight] == 1) && (weights_self[weight] == false))) {
+                    weights_opp[weight] = true; //Note that opponent has used their weight
+                }
                 weights[i] = weight;
                 positions[i] = position;
             }
             
             if (fromServer.startsWith("ADD")) {
-                // response = nextAddMove(weights, positions, weights_self, weights_opp);
+                response = nextAddMove(weights, positions, weights_self, weights_opp); //This modifies weights_self
                 out.println(response);
             } else if (fromServer.startsWith("REMOVE")) {
-                // response = nextRemoveMove(weights, positions);
+                response = nextRemoveMove(weights, positions);
                out.println(response);
             } else if (fromServer.startsWith("REJECT")) {
             } else if (fromServer.startsWith("ACCEPT")) {
@@ -63,7 +71,14 @@ public class Client {
         }
         out.close();
         in.close();
-        stdIn.close();
         socket.close();
+    }
+
+    public static String nextAddMove(int[] weights, int[] positions, boolean[] self, boolean[] opponent) {
+        return "BAD";
+    }
+
+    public static String nextRemoveMove(int[] weights, int[] positions) {
+        return "WORSE";   
     }
 }
