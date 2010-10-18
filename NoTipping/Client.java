@@ -81,4 +81,32 @@ public class Client {
     public static String nextRemoveMove(int[] weights, int[] positions) {
         return "WORSE";   
     }
+
+    public double[] calculate_torque(int[] weights, int[] positions) {        
+        double left_torque=0.0,right_torque=0.0,in1=0,out1=0,in3=0,out3=0;
+        in3 += 9; //From board itself
+        in1 += 3; //From board itself
+        for (int i=0; i<weights.length; i++) {
+            int position = positions[i]-15;
+            int weight = weights[i];
+            if (position < -3) {
+                out3 += (-1) * (position-(-3)) * weight;
+            } else {
+                in3 += (position-(-3))* weight;
+            }
+            if (position < -1) {
+                out1 += (-1) * (position-(-1)) * weight;
+            } else {
+                in1 += (position-(-1))* weight;
+            }
+        }
+        System.out.println("1: in = " + in1 + ", out = " + out1);
+        System.out.println("3: in = " + in3 + ", out = " + out3);
+        left_torque = out3 - in3;
+        right_torque = in1 - out1;
+        double[] ret = new double[2];
+        ret[0] = left_torque;
+        ret[1] = right_torque;
+        return ret; //Tip if either > 0
+    }
 }
