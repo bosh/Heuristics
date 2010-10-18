@@ -3,12 +3,12 @@ import java.net.*;
 import java.util.regex.*;
 import java.util.*;
 
-public class Client {
+public class Client2 {
     public static void main(String[] args) throws Exception {
         Socket socket = null;
         PrintWriter out = null;
         BufferedReader in = null;
-        String clientName = "B0$H";
+        String clientName = "dummy";
         String location = "localhost";
         try {
             socket = new Socket(location, 4445);
@@ -38,6 +38,7 @@ public class Client {
                 String response = "";
                 String[] matches = Pattern.compile("[|]").split(fromServer);
                 String[] placements = Pattern.compile(" ").split(matches[1]);
+                System.out.println("PLACEMENTS" + placements.length);
                 int[] counts = new int[placements.length]; java.util.Arrays.fill(counts,0);
                 int[] weights = new int[placements.length];
                 int[] positions = new int[placements.length];
@@ -61,11 +62,9 @@ public class Client {
                 if (fromServer.startsWith("ADD")) {
                     response = nextAddMove(weights, positions, weights_self, weights_opp); //This modifies weights_self
                     out.println(response);
-                    System.out.println(response);
                 } else if (fromServer.startsWith("REMOVE")) {
                     response = nextRemoveMove(weights, positions);
                    out.println(response);
-                   System.out.println(response);
                 }
             } else if (fromServer.startsWith("REJECT")) {
                 System.out.println("Oh crap");
@@ -117,10 +116,6 @@ public class Client {
             //........... errr
 
         //Picking best choice from possibilities
-        if (possibilities.size() == 0) {
-            System.out.println("no options :(");
-            return "FORFEIT";
-        }
         Possibility choice = possibilities.get(0);
         for(int i = 1; i < possibilities.size(); i++) {
             if (possibilities.get(i).weight > choice.weight) {
