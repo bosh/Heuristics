@@ -104,9 +104,6 @@ public class Client {
         System.out.println("3: in = " + in3 + ", out = " + out3);
         left_torque = out3 - in3;
         right_torque = in1 - out1;
-        double[] ret = new double[2];
-        ret[0] = left_torque;
-        ret[1] = right_torque;
-        return ret; //Tip if either > 0
+        return new double[] {left_torque, right_torque}; //Tip if either > 0
     }
 }
