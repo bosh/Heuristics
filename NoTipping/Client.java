@@ -8,7 +8,7 @@ public class Client {
         Socket socket = null;
         PrintWriter out = null;
         BufferedReader in = null;
-        String clientName = "B0$H";
+        String clientName = "b0$h";
         String location = "localhost";
         try {
             socket = new Socket(location, 4445);
@@ -101,7 +101,7 @@ public class Client {
                         int position = j - offset;
                             int[] positions_new = new int[positions.length + 1]; System.arraycopy(positions, 0, positions_new, 0, positions.length);
                             positions_new[positions_new.length-1] = position;
-                        double[] torques_new = calculate_new_torque(torques, weight, position);
+                        double[] torques_new = calculate_new_add_torque(torques, weight, position);
                         if ((torques_new[0] > 0) || (torques_new[1] > 0)) {
                             // System.out.println("BAD TIMES " + torques_new[0] + "  " + torques_new[1] + " " + weight + " " + position);
                             //Bad times
@@ -134,10 +134,67 @@ public class Client {
     }
 
     public static String nextRemoveMove(int[] weights, int[] positions) {
-        return "FORFEIT";
+        double[] torques = calculate_torque(weights, positions);
+        ArrayList<Possibility> possibilities = new ArrayList<Possibility>();
+        for(int i = 0; i < weights.length; i++) {
+            int weight = weights[i];
+            int position = positions[i];
+
+            int[] weights_new = new int[weights.length - 1];
+            int[] positions_new = new int[positions.length - 1];
+            for(int j = 0; j < weights.length; j++) {
+                if (j < i) {
+                    weights_new[j] = weights[j];
+                    positions_new[j] = positions[j];
+                } else if (j > i) {
+                    weights_new[j-1] = weights[j];
+                    positions_new[j-1] = positions[j];
+                }
+            }
+            double[] torques_new = calculate_new_remove_torque(torques, weight, position);
+            if ((torques_new[0] > 0) || (torques_new[1] > 0)) {
+                // System.out.println("BAD TIMES " + torques_new[0] + "  " + torques_new[1] + " " + weight + " " + position);
+                //Bad times
+            } else { //it's a valid move for me
+                // System.out.println("FINE " + torques_new[0] + "  " + torques_new[1] + " " + weight + " " + position);
+                possibilities.add(new Possibility(weights_new, positions_new, torques_new, weight, position));
+            }
+        }
+        
+        //Picking best choice from possibilities
+        if (possibilities.size() == 0) {
+            System.out.println("no options :(");
+            return "FORFEIT";
+        }
+        Possibility choice = possibilities.get(0);
+        for(int i = 1; i < possibilities.size(); i++) {
+            if (possibilities.get(i).weight > choice.weight) {
+                choice = possibilities.get(i);
+            } else if (possibilities.get(i).weight > choice.weight && Math.random() < .3) {
+                choice = possibilities.get(i);
+            }
+        }
+        return choice.to_message();
     }
 
-    public static double[] calculate_new_torque(double[] torque, int weight, int position) {
+    public static double[] calculate_new_remove_torque(double[] torque, int weight, int position) {
+        double left_torque = torque[0];
+        double right_torque = torque[1];
+        double in1=0,out1=0,in3=0,out3=0;
+        if (position < -3) {
+            out3 -= (-1) * (position-(-3)) * weight;
+        } else {
+            in3 -= (position-(-3))* weight;
+        }
+        if (position < -1) {
+            out1 -= (-1) * (position-(-1)) * weight;
+        } else {
+            in1 -= (position-(-1))* weight;
+        }
+        return new double[] {left_torque + out3 - in3, right_torque + in1 - out1}; //Tip if either > 0
+    }
+
+    public static double[] calculate_new_add_torque(double[] torque, int weight, int position) {
         double left_torque = torque[0];
         double right_torque = torque[1];
         double in1=0,out1=0,in3=0,out3=0;
