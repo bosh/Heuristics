@@ -38,8 +38,7 @@ public class Client2 {
                 String response = "";
                 String[] matches = Pattern.compile("[|]").split(fromServer);
                 String[] placements = Pattern.compile(" ").split(matches[1]);
-                System.out.println("PLACEMENTS" + placements.length);
-                int[] counts = new int[placements.length]; java.util.Arrays.fill(counts,0);
+                int[] counts = new int[weight_count]; java.util.Arrays.fill(counts,0);
                 int[] weights = new int[placements.length];
                 int[] positions = new int[placements.length];
                 
@@ -61,11 +60,11 @@ public class Client2 {
                 }
                 if (fromServer.startsWith("ADD")) {
                     response = nextAddMove(weights, positions, weights_self, weights_opp); //This modifies weights_self
-                    out.println(response);
                 } else if (fromServer.startsWith("REMOVE")) {
                     response = nextRemoveMove(weights, positions);
-                   out.println(response);
                 }
+                System.out.println(response);
+                if (response != "FORFEIT") { out.println(response); }
             } else if (fromServer.startsWith("REJECT")) {
                 System.out.println("Oh crap");
             } else if (fromServer.startsWith("ACCEPT")) {
@@ -92,8 +91,8 @@ public class Client2 {
                 self_new[i] = true; //Simulate making this move
                 int board_width = 31;
                 int offset = 15; //To change 0-30 to be -15 to 15 and -15-15 to 0-30
-                boolean[] available_positions = new boolean[board_width]; java.util.Arrays.fill(available_positions,false);
-                for(int j = 0; j < positions.length; j++) { available_positions[positions[j] + offset] = true; }   
+                boolean[] available_positions = new boolean[board_width]; java.util.Arrays.fill(available_positions,true);
+                for(int j = 0; j < positions.length; j++) { available_positions[positions[j] + offset] = false; }   
                 for(int j = 0; j < available_positions.length; j++) { //Try every position
                     if (available_positions[j]) {
                         int weight = i+1;
@@ -104,8 +103,10 @@ public class Client2 {
                             positions_new[positions_new.length-1] = position;
                         double[] torques_new = calculate_new_torque(torques, weight, position);
                         if ((torques_new[0] > 0) || (torques_new[1] > 0)) {
-                            //then it's bad
+                            // System.out.println("BAD TIMES " + torques_new[0] + "  " + torques_new[1] + " " + weight + " " + position);
+                            //Bad times
                         } else { //it's a valid move for me
+                            // System.out.println("FINE " + torques_new[0] + "  " + torques_new[1] + " " + weight + " " + position);
                             possibilities.add(new Possibility(weights_new, positions_new, torques_new, weight, position));
                         }
                     }
@@ -116,17 +117,24 @@ public class Client2 {
             //........... errr
 
         //Picking best choice from possibilities
+        if (possibilities.size() == 0) {
+            System.out.println("no options :(");
+            return "FORFEIT";
+        }
         Possibility choice = possibilities.get(0);
         for(int i = 1; i < possibilities.size(); i++) {
             if (possibilities.get(i).weight > choice.weight) {
                 choice = possibilities.get(i);
+            } else if (possibilities.get(i).weight > choice.weight && Math.random() < .3) {
+                choice = possibilities.get(i);
             }
         }
+        self[choice.weight-1] = true;
         return choice.to_message();
     }
 
     public static String nextRemoveMove(int[] weights, int[] positions) {
-        return "WORSE";   
+        return "FORFEIT";
     }
 
     public static double[] calculate_new_torque(double[] torque, int weight, int position) {
@@ -151,7 +159,7 @@ public class Client2 {
         in3 += 9; //From board itself
         in1 += 3; //From board itself
         for (int i=0; i<weights.length; i++) {
-            int position = positions[i]-15;
+            int position = positions[i];
             int weight = weights[i];
             if (position < -3) {
                 out3 += (-1) * (position-(-3)) * weight;
@@ -164,8 +172,7 @@ public class Client2 {
                 in1 += (position-(-1))* weight;
             }
         }
-        System.out.println("1: in = " + in1 + ", out = " + out1);
-        System.out.println("3: in = " + in3 + ", out = " + out3);
+        System.out.println("1: in = " + in1 + ", out = " + out1 + " | 3: in = " + in3 + ", out = " + out3);
         left_torque = out3 - in3;
         right_torque = in1 - out1;
         return new double[] {left_torque, right_torque}; //Tip if either > 0
