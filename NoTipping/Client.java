@@ -11,7 +11,7 @@ public class Client {
         String clientName = "b0$h";
         String location = "localhost";
         try {
-            socket = new Socket(location, 4445);
+            socket = new Socket(location, 44444);
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (UnknownHostException e) {
