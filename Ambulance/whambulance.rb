@@ -20,14 +20,10 @@ class Person
 	def place_at(x, y); @x, @y = x, y end
 	def coords; [x,y] end
 	def distance_to(obj); (obj.x - @x).abs + (obj.y - @y).abs end
+	def available_at?(time); time < @death && in_ambulance.nil? && !@saved end
+	def save!(time) @saved = true if time <= @death end
 	def cluster_distance_to(hospital)
 		((hospital.x - @x).abs + (hospital.y - @y).abs) * (1 - (hospital.ambulance_count.to_f / 25))
-	end
-	def available_at?(time)
-		time < @death && in_ambulance.nil? && !@saved
-	end
-	def save!(time)
-		@saved = true if time <= @death 
 	end
 end
 
@@ -119,7 +115,6 @@ class ClusterController
 			#could add smarter placement that chooses a slightly worse spot if it drops directly on a person
 			points << [means[:x].round, means[:y].round]
 		end
-		#puts points.map{|p| "X: " + p[0].to_s + " Y: " + p[1].to_s }.join "\t"
 		points
 	end
 
