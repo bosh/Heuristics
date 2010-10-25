@@ -75,6 +75,7 @@ class ClusterController
 			end
 			@stable_clusters << new_cluster
 		end
+		@best_cluster = select_best_cluster
 	end
 
 	def place_randomly!
@@ -126,6 +127,28 @@ class ClusterController
 		end
 		@cluster_distances = person_hospital_distances
 	end
+
+	def select_best_cluster #TODO (placeholder)
+		@stable_clusters[(@stable_clusters.length * rand()).floor]
+	end
+end
+
+class RoutePlanner
+	attr_accessor :people, :hospitals
+
+	def initialize(people, hospitals) #TODO the last part!
+		# NOTE: This all uses normal distances, not weighed as was used to cluster.
+		#make certain that all hospitals are placed at the right spots
+		#for every ambulance in every hospital find the closest savable very needy person
+		#	for every closer and slightly less needy person,
+		#		see if they can fit in the route before the current person
+		#		see if they can be placed after the first person before the next dropoff
+		#			(if the detour distance and distance to the new endpoint - the distance that was interrupted is not too much worse and causes no current passenger deaths, take it)
+		#	for every further and slightly less needy person,
+		#		do similar to the above loop
+		# NOTE: probably run individual pickups all at once, so everyone has a first person before seconds are selected
+		# NOTE: to save 300 people at 3 people average a trip, that's 100 trips. at 5*8 expected ambulances, that's 2.5 sets of 3, ie 7-8 total people an ambulance for total coverage
+	end
 end
 
 def generateRandomX; $bounds[:x][:min] + $width*rand() end
@@ -158,3 +181,4 @@ $height = $bounds[:y][:max] - $bounds[:y][:min]
 $deathClock = $bounds[:death][:max] - $bounds[:death][:min]
 
 clusterer = ClusterController.new(people, hospitals)
+route_planner = RoutePlanner.new(people, hospitals)
