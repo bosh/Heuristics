@@ -1,6 +1,5 @@
 class Person
-	attr_accessor :number, :x, :y, :death
-
+	attr_accessor :number, :x, :y, :death, :in_ambulance, :saved
 	def initialize(str)
 		data = str.split ","
 		coords = (@x,@y = data[0].to_i, data[1].to_i)
@@ -12,6 +11,8 @@ class Person
 
 		@death = data[2].to_i
 		@number = $person_count
+		@in_ambulance = nil
+		@saved = false
 		$person_count += 1
 	end
 
@@ -22,11 +23,16 @@ class Person
 	def cluster_distance_to(hospital)
 		((hospital.x - @x).abs + (hospital.y - @y).abs) * (1 - (hospital.ambulance_count.to_f / 25))
 	end
+	def available_at?(time)
+		time < @death && in_ambulance.nil? && !@saved
+	end
+	def save!(time)
+		@saved = true if time <= @death 
+	end
 end
 
 class Hospital
 	attr_accessor :x, :y, :ambulances, :ambulance_count
-
 	def initialize(line)
 		@ambulances = []
 		@ambulance_count = line.to_i
@@ -55,11 +61,11 @@ class Ambulance
 	def place_at(coords); @x, @y = coords end
 	def coords; [x,y] end
 	def distance_to(obj); (obj.x - @x).abs + (obj.y - @y).abs end
+	def next_time_available; (@orders.empty? ? 1 : @orders.last.finishing_time + 1 ) end
 end
 
 class ClusterController
 	attr_accessor :people, :hospitals, :cluster_distances, :best_cluster, :stable_clusters
-
 	def initialize(people, hospitals)
 		@people = people.clone
 		@hospitals = hospitals.clone
@@ -134,11 +140,30 @@ class ClusterController
 end
 
 class RoutePlanner
-	attr_accessor :people, :hospitals
+	attr_accessor :people, :hospitals, :ambulances
+	def initialize(people, hospitals, cluster_points) #TODO the last part!
+		@hospitals = hospitals
+		@people = people
+		@ambulances = []
+		@hospitals.each_with_index do |hospital, i|
+			hospital.place_at(i[0], i[1])
+			person_at_hospital = @people.map{|p| p.coords == hospital.coords}.index(true)
+			@people[person_at_hospital].save! if person_at_hospital #Save anyone placed on top of
+			hospital.ambulances.each do |ambulance|
+				ambulance.place_at(hospital.coords)
+				@ambulances << ambulance
+			end
+		end
 
-	def initialize(people, hospitals) #TODO the last part!
-		# NOTE: This all uses normal distances, not weighed as was used to cluster.
-		#make certain that all hospitals are placed at the right spots
+		time = 0
+		available_people = []
+		@people.each{|person| available_people << person if person.available_at?(time)}
+		until available_people.empty?
+
+			time = @ambulances.map(&:next_time_available).min
+			available_people = []
+			@people.each{|person| available_people << person if person.available_at?(time)}
+		end
 		#for every ambulance in every hospital find the closest savable very needy person
 		#	for every closer and slightly less needy person,
 		#		see if they can fit in the route before the current person
@@ -148,6 +173,7 @@ class RoutePlanner
 		#		do similar to the above loop
 		# NOTE: probably run individual pickups all at once, so everyone has a first person before seconds are selected
 		# NOTE: to save 300 people at 3 people average a trip, that's 100 trips. at 5*8 expected ambulances, that's 2.5 sets of 3, ie 7-8 total people an ambulance for total coverage
+		# NOTE: This all uses normal distances, not weighed as was used to cluster.
 	end
 end
 
@@ -181,4 +207,4 @@ $height = $bounds[:y][:max] - $bounds[:y][:min]
 $deathClock = $bounds[:death][:max] - $bounds[:death][:min]
 
 clusterer = ClusterController.new(people, hospitals)
-route_planner = RoutePlanner.new(people, hospitals)
+route_planner = RoutePlanner.new(people, hospitals, clusterer.best_cluster)
