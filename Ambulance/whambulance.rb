@@ -22,8 +22,14 @@ class Person
 	def distance_to(obj); (obj.x - @x).abs + (obj.y - @y).abs end
 	def available_at?(time); time < @death && in_ambulance.nil? && !@saved end
 	def save!(time) @saved = true if time <= @death end
+
 	def cluster_distance_to(hospital)
 		((hospital.x - @x).abs + (hospital.y - @y).abs) * (1 - (hospital.ambulance_count.to_f / 25))
+	end
+
+	def urgency_to(ambulance)
+		distance_to(ambulance)
+		(rand()/2)*@death + (rand()/2)*@death
 	end
 end
 
@@ -47,30 +53,58 @@ class Hospital
 end
 
 class Ambulance
-	attr_accessor :x, :y, :orders, :start_hospital
+	attr_accessor :x, :y, :orders, :start_hospital, :current_passengers
 	def initialize(hospital)
 		@start_hospital = hospital
 		@orders = []
+		@current_passengers = []
 	end
 
-	def to_s; [@x, @y].join ", " end
+	def to_s; "Ambulance: " + coords.join(", ") end
 	def place_at(coords); @x, @y = coords end
-	def coords; [x,y] end
+	def coords; [@x,@y] end
 	def distance_to(obj); (obj.x - @x).abs + (obj.y - @y).abs end
+	
+	def pick_up!(person)
+		@current_passengers << person
+		person.in_ambulance = self
+	end
+
+	def add_order(order)
+		puts "ERROR. IMPOSSIBLE" if coords != order.start_point
+		place_at(order.end_point)
+		if order.action == :p
+			pick_up! order.object
+		elsif order.action == :d
+			drop_off!
+		end
+		@orders << order
+	end
+
+	def drop_off!
+		@current_passengers.each{|p| p.save!}
+		@current_passengers = []
+	end
+
+	def must_return_to_hospital_by_time
+		@current_passengers.empty? ? $bounds[:death][:max] : @current_passengers.map(&:death).min
+	end
+
 	def next_time_available
-		(@orders.empty? ? 1 : @orders.inject{|sum, o| sum += o.time_taken} + 1 )
+		(@orders.empty? ? 1 : @orders.inject(0){|sum, o| sum += o.time_taken} + 1 )
 	end
 end
 
 class Order
-	attr_accessor :start_point, :end_point, :time_taken #Time includes time to pick up
+	attr_accessor :start_point, :end_point, :time_taken, :action, :object #Time includes time to pick up
 	def initialize(start_point, end_point, object_at_end_point)
 		@start_point = start_point
 		@end_point = end_point
+		@object = object_at_end_point
 		if object_at_end_point.class == "Hospital"
-
+			@action = :d
 		elsif object_at_end_point.class == "Person"
-
+			@action = :p
 		end
 		@time_taken = calculate_time_taken
 	end
@@ -170,25 +204,23 @@ class RoutePlanner
 			end
 		end
 
-		time = 0
-		available_people = []
-		@people.each{|person| available_people << person if person.available_at?(time)}
+		time = 1
+		available_people = @people.map{|person| person.available_at?(time) ? person : nil}.compact
+		ambulances_to_order = @ambulances.map{|ambulance| ambulance.next_time_available <= time ? ambulance : nil}.compact
 		until available_people.empty?
-
+			puts time
+			ambulances_to_order.each do |a|
+				people_urgencies = available_people.map{|p| p.urgency_to(a)}
+				person_to_pick_up = available_people.delete_at(people_urgencies.index people_urgencies.max)
+				a.add_order(Order.new(a.coords, person_to_pick_up.coords, person_to_pick_up))
+				
+				hospital_distances = @hospitals.map{|h| a.distance_to h}
+				# closest_hospital = @hospitals[hospital_distances.index hospital_distance.min]
+			end
 			time = @ambulances.map(&:next_time_available).min
-			available_people = []
-			@people.each{|person| available_people << person if person.available_at?(time)}
+			available_people = @people.map{|person| person.available_at?(time) ? person : nil}.compact
+			ambulances_to_order = @ambulances.map{|ambulance| ambulance.next_time_available <= time ? ambulance : nil}.compact
 		end
-		#for every ambulance in every hospital find the closest savable very needy person
-		#	for every closer and slightly less needy person,
-		#		see if they can fit in the route before the current person
-		#		see if they can be placed after the first person before the next dropoff
-		#			(if the detour distance and distance to the new endpoint - the distance that was interrupted is not too much worse and causes no current passenger deaths, take it)
-		#	for every further and slightly less needy person,
-		#		do similar to the above loop
-		# NOTE: probably run individual pickups all at once, so everyone has a first person before seconds are selected
-		# NOTE: to save 300 people at 3 people average a trip, that's 100 trips. at 5*8 expected ambulances, that's 2.5 sets of 3, ie 7-8 total people an ambulance for total coverage
-		# NOTE: This all uses normal distances, not weighed as was used to cluster.
 	end
 end
 
