@@ -57,7 +57,27 @@ class Ambulance
 	def place_at(coords); @x, @y = coords end
 	def coords; [x,y] end
 	def distance_to(obj); (obj.x - @x).abs + (obj.y - @y).abs end
-	def next_time_available; (@orders.empty? ? 1 : @orders.last.finishing_time + 1 ) end
+	def next_time_available
+		(@orders.empty? ? 1 : @orders.inject{|sum, o| sum += o.time_taken} + 1 )
+	end
+end
+
+class Order
+	attr_accessor :start_point, :end_point, :time_taken #Time includes time to pick up
+	def initialize(start_point, end_point, object_at_end_point)
+		@start_point = start_point
+		@end_point = end_point
+		if object_at_end_point.class == "Hospital"
+
+		elsif object_at_end_point.class == "Person"
+
+		end
+		@time_taken = calculate_time_taken
+	end
+
+	def calculate_time_taken
+		(start_point[0] - end_point[0]).abs + (start_point[1] - end_point[1]).abs + 1
+	end
 end
 
 class ClusterController
