@@ -3,13 +3,15 @@ class Person
 	def initialize(str)
 		data = str.split ","
 		coords = (@x,@y = data[0].to_i, data[1].to_i)
+		@death = data[2].to_i
 
 		$bounds[:x][:min] = @x if @x < $bounds[:x][:min]
 		$bounds[:x][:max] = @x if @x > $bounds[:x][:max]
 		$bounds[:y][:min] = @x if @x < $bounds[:y][:min]
 		$bounds[:y][:max] = @x if @x > $bounds[:y][:max]
+		$bounds[:death][:min] = @death if @death < $bounds[:death][:min]
+		$bounds[:death][:max] = @death if @death > $bounds[:death][:max]
 
-		@death = data[2].to_i
 		@number = $person_count
 		@in_ambulance = nil
 		@saved = false
@@ -29,12 +31,12 @@ class Person
 
 	def urgency_to(ambulance, time)
 		time_left = @death - time
-		if time_left > 40.0
-			40.0/time_left
+		if time_left > $deathClock / 2
+			$deathClock / time_left
 		elsif time_left < 1.3*distance_to(ambulance)
 			-1
 		else
-			(distance_to(ambulance)**(0.5))*(40.0/time_left)
+			(distance_to(ambulance)**(0.5)) / time_left
 		end
 	end
 end
@@ -214,7 +216,6 @@ class RoutePlanner
 		available_people = @people.map{|person| person.available_at?(time) ? person : nil}.compact
 		ambulances_to_order = @ambulances.map{|ambulance| ambulance.next_time_available <= time ? ambulance : nil}.compact
 		until available_people.empty?
-			puts time
 			ambulances_to_order.each do |a|
 				if available_people.size > 0
 					people_urgencies = available_people.map{|p| p.urgency_to(a, time)}
