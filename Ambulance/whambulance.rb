@@ -27,9 +27,15 @@ class Person
 		((hospital.x - @x).abs + (hospital.y - @y).abs) * (1 - (hospital.ambulance_count.to_f / 25))
 	end
 
-	def urgency_to(ambulance)
-		distance_to(ambulance)
-		(rand()/2)*@death + (rand()/2)*@death
+	def urgency_to(ambulance, time)
+		time_left = @death - time
+		if time_left > 40.0
+			40.0/time_left
+		elsif time_left < 1.3*distance_to(ambulance)
+			-1
+		else
+			(distance_to(ambulance)**(0.5))*(40.0/time_left)
+		end
 	end
 end
 
@@ -97,9 +103,9 @@ end
 
 class Order
 	attr_accessor :start_point, :end_point, :time_taken, :action, :object #Time includes time to pick up
-	def initialize(start_point, end_point, object_at_end_point)
+	def initialize(start_point, object_at_end_point)
 		@start_point = start_point
-		@end_point = end_point
+		@end_point = object_at_end_point.coords
 		@object = object_at_end_point
 		if object_at_end_point.class == "Hospital"
 			@action = :d
@@ -210,12 +216,22 @@ class RoutePlanner
 		until available_people.empty?
 			puts time
 			ambulances_to_order.each do |a|
-				people_urgencies = available_people.map{|p| p.urgency_to(a)}
-				person_to_pick_up = available_people.delete_at(people_urgencies.index people_urgencies.max)
-				a.add_order(Order.new(a.coords, person_to_pick_up.coords, person_to_pick_up))
-				
+				if available_people.size > 0
+					people_urgencies = available_people.map{|p| p.urgency_to(a, time)}
+					person_to_pick_up = available_people.delete_at(people_urgencies.index people_urgencies.max)
+					a.add_order(Order.new(a.coords, person_to_pick_up))
+				end
+
 				hospital_distances = @hospitals.map{|h| a.distance_to h}
-				# closest_hospital = @hospitals[hospital_distances.index hospital_distance.min]
+				closest_hospital = @hospitals[hospital_distances.index hospital_distances.min]
+
+				if a.current_passengers.size == 4 || available_people.size == 0
+					puts "returning home"
+					a.add_order(Order.new(a.coords, closest_hospital))
+				elsif a.current_passengers.size == 3 && people_urgencies.max < 10
+					puts "returning home 3/non-urgent"
+					a.add_order(Order.new(a.coords, closest_hospital))
+				end
 			end
 			time = @ambulances.map(&:next_time_available).min
 			available_people = @people.map{|person| person.available_at?(time) ? person : nil}.compact
