@@ -35,3 +35,4 @@ $deathClock = $bounds[:death][:max] - $bounds[:death][:min]
 
 clusterer = ClusterController.new(people, hospitals)
 route_planner = RoutePlanner.new(people, hospitals, clusterer.best_cluster)
+puts route_planner.score

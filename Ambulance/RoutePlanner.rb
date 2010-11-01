@@ -1,11 +1,11 @@
 class RoutePlanner
-	attr_accessor :people, :hospitals, :ambulances
+	attr_accessor :people, :hospitals, :ambulances, :score
 	def initialize(people, hospitals, cluster_points) #TODO the last part!
 		@hospitals = hospitals
 		@people = people
 		@ambulances = []
 		@hospitals.each_with_index do |hospital, i|
-			hospital.place_at(i[0], i[1])
+			hospital.place_at(cluster_points[i][0], cluster_points[i][1])
 			person_at_hospital = @people.map{|p| p.coords == hospital.coords}.index(true)
 			@people[person_at_hospital].save! if person_at_hospital #Save anyone placed on top of
 			hospital.ambulances.each do |ambulance|
@@ -40,5 +40,6 @@ class RoutePlanner
 			available_people = @people.map{|person| person.available_at?(time) ? person : nil}.compact
 			ambulances_to_order = @ambulances.map{|ambulance| ambulance.next_time_available <= time ? ambulance : nil}.compact
 		end
+		@score = @people.count{|p| p.saved}
 	end
 end
