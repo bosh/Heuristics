@@ -17,6 +17,11 @@ class Ambulance
 		@current_passengers = []
 	end
 	
+	def closest_hospital(hospitals)
+		hospital_distances = hospitals.map{|h| distance_to h}
+		hospitals[hospital_distances.index hospital_distances.min]
+	end
+
 	def pick_up!(person)
 		@current_passengers << person
 		person.in_ambulance = self

@@ -25,15 +25,12 @@ class RoutePlanner
 					a.add_order(Order.new(a.coords, person_to_pick_up))
 				end
 
-				hospital_distances = @hospitals.map{|h| a.distance_to h}
-				closest_hospital = @hospitals[hospital_distances.index hospital_distances.min]
-
 				if a.current_passengers.size == 4
 					puts "returning home"
-					a.add_order(Order.new(a.coords, closest_hospital))
+					a.add_order(Order.new(a.coords, a.closest_hospital(@hospitals)))
 				elsif a.current_passengers.size == 3 && people_urgencies.max < 5
 					puts "returning home 3/non-urgent"
-					a.add_order(Order.new(a.coords, closest_hospital))
+					a.add_order(Order.new(a.coords, a.closest_hospital(@hospitals)))
 				end
 
 			end
@@ -42,11 +39,7 @@ class RoutePlanner
 			ambulances_to_order = @ambulances.map{|ambulance| ambulance.next_time_available <= time ? ambulance : nil}.compact
 			if available_people.size == 0
 				@ambulances.each do |amb|
-					if amb.orders.last.action != :d
-						hospital_distances = @hospitals.map{|h| amb.distance_to h}
-						closest_hospital = @hospitals[hospital_distances.index hospital_distances.min]
-						amb.add_order(Order.new(amb.coords, closest_hospital))
-					end
+					amb.add_order(Order.new(amb.coords, amb.closest_hospital(@hospitals))) if amb.orders.last.action != :d
 				end
 			end
 		end
