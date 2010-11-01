@@ -1,6 +1,7 @@
 class RoutePlanner
 	attr_accessor :people, :hospitals, :ambulances, :score
-	def initialize(people, hospitals, cluster_points) #TODO the last part!
+	def initialize(people, hospitals, cluster_points)
+		puts "how" if cluster_points.size < hospitals.size
 		@hospitals = hospitals
 		@people = people
 		@ambulances = []
@@ -26,13 +27,12 @@ class RoutePlanner
 				end
 
 				if a.current_passengers.size == 4
-					puts "returning home"
+					# puts "returning home"
 					a.add_order(Order.new(a.coords, a.closest_hospital(@hospitals)))
 				elsif a.current_passengers.size == 3 && people_urgencies.max < 5
-					puts "returning home 3/non-urgent"
+					# puts "returning home 3/non-urgent"
 					a.add_order(Order.new(a.coords, a.closest_hospital(@hospitals)))
 				end
-
 			end
 			time = @ambulances.map(&:next_time_available).min
 			available_people = @people.map{|person| person.available_at?(time) ? person : nil}.compact

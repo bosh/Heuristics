@@ -28,7 +28,6 @@ class Ambulance
 	end
 
 	def add_order(order)
-		puts order
 		puts "ERROR. IMPOSSIBLE" if coords != order.start_point
 		place_at(order.end_point)
 		if order.action == :p

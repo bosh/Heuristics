@@ -8,7 +8,9 @@ def reset!
 end
 
 #########Program execution#############
-$cluster_generation_time_limit = 5
+$start_time = Time.now
+$program_run_limit = 118
+$cluster_generation_time_limit = 20
 $person_count = 0
 $bounds = {	:x => {:min => 99, :max => 0},
 			:y => {:min => 99, :max => 0},
@@ -34,5 +36,17 @@ $height = $bounds[:y][:max] - $bounds[:y][:min]
 $deathClock = $bounds[:death][:max] - $bounds[:death][:min]
 
 clusterer = ClusterController.new(people, hospitals)
-route_planner = RoutePlanner.new(people, hospitals, clusterer.best_cluster)
-puts route_planner.score
+score = 0
+best = nil
+clusterer.stable_clusters.each do |cluster|
+	break if Time.now - $start_time > $program_run_limit
+	people.each{|p| p.reset!}
+	hospitals.each{|h| h.reset!}
+	route_planner = RoutePlanner.new(people, hospitals, cluster)
+	puts route_planner.score
+	if route_planner.score > score
+		score = route_planner.score
+		best = route_planner
+	end
+end
+puts "Best score: #{score}"
