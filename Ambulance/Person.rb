@@ -27,6 +27,11 @@ class Person
 	def coords; [x,y] end
 	def distance_to(obj); (obj.x - @x).abs + (obj.y - @y).abs end
 	def available_at?(time); time < @death && in_ambulance.nil? && !@saved end
+
+	def to_validator
+		"#{@number} (#{@x},#{@y},#{@death})"
+	end
+
 	def save!(time)
 		@saved = true if time <= @death
 		@in_ambulance = nil

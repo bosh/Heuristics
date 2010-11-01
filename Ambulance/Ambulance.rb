@@ -50,4 +50,11 @@ class Ambulance
 	def next_time_available
 		(@orders.empty? ? 1 : @orders.inject(0){|sum, o| sum += o.time_taken} + 1 )
 	end
+
+	def to_validator(i)
+		text = ""
+		name = "Ambulance #{i} "
+		@orders.each{|o| text << name << o.to_validator << "\n"}
+		text
+	end
 end

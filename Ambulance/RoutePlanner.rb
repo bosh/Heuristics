@@ -46,6 +46,10 @@ class RoutePlanner
 	end
 
 	def to_validator
-		""
+		text = "Hospitals"
+		@hospitals.each_with_index{|h, i| text << " #{i} #{h.to_validator}" }
+		text << "\n"
+		@ambulances.each_with_index{|a, i| text << a.to_validator(i)}
+		text
 	end
 end

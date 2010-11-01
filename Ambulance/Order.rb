@@ -19,4 +19,8 @@ class Order
 	def to_s
 		"(#{@end_point.join ","})   \t#{@action.to_s.upcase}\tS:#{@time_taken}"
 	end
+
+	def to_validator
+		object.to_validator
+	end
 end
