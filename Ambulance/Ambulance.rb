@@ -23,6 +23,7 @@ class Ambulance
 	end
 
 	def add_order(order)
+		puts order
 		puts "ERROR. IMPOSSIBLE" if coords != order.start_point
 		place_at(order.end_point)
 		if order.action == :p
@@ -34,7 +35,7 @@ class Ambulance
 	end
 
 	def drop_off!
-		@current_passengers.each{|p| p.save!}
+		@current_passengers.each{|p| p.save!(next_time_available - 1)}
 		@current_passengers = []
 	end
 

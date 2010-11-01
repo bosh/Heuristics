@@ -27,7 +27,10 @@ class Person
 	def coords; [x,y] end
 	def distance_to(obj); (obj.x - @x).abs + (obj.y - @y).abs end
 	def available_at?(time); time < @death && in_ambulance.nil? && !@saved end
-	def save!(time) @saved = true if time <= @death end
+	def save!(time)
+		@saved = true if time <= @death
+		@in_ambulance = nil
+	end
 
 	def cluster_distance_to(hospital)
 		((hospital.x - @x).abs + (hospital.y - @y).abs) * (1 - (hospital.ambulance_count.to_f / 25))

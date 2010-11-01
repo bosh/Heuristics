@@ -4,9 +4,9 @@ class Order
 		@start_point = start_point
 		@end_point = object_at_end_point.coords
 		@object = object_at_end_point
-		if object_at_end_point.class == "Hospital"
+		if object_at_end_point.class == Hospital
 			@action = :d
-		elsif object_at_end_point.class == "Person"
+		elsif object_at_end_point.class == Person
 			@action = :p
 		end
 		@time_taken = calculate_time_taken
@@ -14,5 +14,9 @@ class Order
 
 	def calculate_time_taken
 		(start_point[0] - end_point[0]).abs + (start_point[1] - end_point[1]).abs + 1
+	end
+
+	def to_s
+		"(#{@end_point.join ","})   \t#{@action.to_s.upcase}\tS:#{@time_taken}"
 	end
 end
