@@ -12,10 +12,14 @@ class Person
 		$bounds[:death][:min] = @death if @death < $bounds[:death][:min]
 		$bounds[:death][:max] = @death if @death > $bounds[:death][:max]
 
+		reset!
 		@number = $person_count
+		$person_count += 1
+	end
+
+	def reset!
 		@in_ambulance = nil
 		@saved = false
-		$person_count += 1
 	end
 
 	def to_s; [@number, @x, @y, @death].join ", " end
@@ -49,6 +53,10 @@ class Hospital
 		@ambulance_count.times {|i| @ambulances << Ambulance.new(self)}
 	end
 
+	def reset!
+		@ambulances.each{|a| a.reset!}
+	end
+
 	def place_at(x,y)
 		@x, @y = x, y
 		@ambulances.each{|ambulance| ambulance.place_at(@x, @y)}
@@ -72,6 +80,12 @@ class Ambulance
 	def place_at(coords); @x, @y = coords end
 	def coords; [@x,@y] end
 	def distance_to(obj); (obj.x - @x).abs + (obj.y - @y).abs end
+
+	def reset!
+		place_at(@start_hospital.coords)
+		@orders = []
+		@current_passengers = []
+	end
 	
 	def pick_up!(person)
 		@current_passengers << person
@@ -243,6 +257,10 @@ end
 
 def generateRandomX; $bounds[:x][:min] + $width*rand() end
 def generateRandomY; $bounds[:y][:min] + $width*rand() end
+def reset!
+	$people.each{|p| p.reset! }
+	$hospitals.each{|p| p.reset! }
+end
 
 #########Program execution#############
 $cluster_generation_time_limit = 5
