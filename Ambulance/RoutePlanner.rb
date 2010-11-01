@@ -1,7 +1,6 @@
 class RoutePlanner
 	attr_accessor :people, :hospitals, :ambulances, :score
 	def initialize(people, hospitals, cluster_points)
-		puts "how" if cluster_points.size < hospitals.size
 		@hospitals = hospitals
 		@people = people
 		@ambulances = []
@@ -44,5 +43,9 @@ class RoutePlanner
 			end
 		end
 		@score = @people.count{|p| p.saved}
+	end
+
+	def to_validator
+		""
 	end
 end

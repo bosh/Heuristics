@@ -38,15 +38,19 @@ $deathClock = $bounds[:death][:max] - $bounds[:death][:min]
 clusterer = ClusterController.new(people, hospitals)
 score = 0
 best = nil
+validator_text = ""
 clusterer.stable_clusters.each do |cluster|
 	break if Time.now - $start_time > $program_run_limit
 	people.each{|p| p.reset!}
 	hospitals.each{|h| h.reset!}
-	route_planner = RoutePlanner.new(people, hospitals, cluster)
-	puts route_planner.score
-	if route_planner.score > score
-		score = route_planner.score
-		best = route_planner
+	route = RoutePlanner.new(people, hospitals, cluster)
+	print "#{route.score}\t"
+	if route.score > score
+		score = route.score
+		best = route
+		validator_text = route.to_validator
 	end
 end
-puts "Best score: #{score}"
+puts "\nBest score: #{score}"
+puts "Time: #{Time.now - $start_time}"
+File.new("to_validate.txt", "w").puts validator_text
