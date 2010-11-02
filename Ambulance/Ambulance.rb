@@ -27,6 +27,12 @@ class Ambulance
 		person.in_ambulance = self
 	end
 
+	def soonest_death(time)
+		times = [999]
+		times += @current_passengers.map(&:death).reject{|t| t <= time}
+		times.min
+	end
+
 	def add_order(order)
 		puts "ERROR. IMPOSSIBLE" if coords != order.start_point
 		place_at(order.end_point)

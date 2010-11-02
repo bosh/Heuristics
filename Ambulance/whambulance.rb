@@ -10,7 +10,7 @@ end
 #########Program execution#############
 $start_time = Time.now
 $program_run_limit = 118
-$cluster_generation_time_limit = 20
+$cluster_generation_time_limit = 66
 $person_count = 0
 $bounds = {	:x => {:min => 99, :max => 0},
 			:y => {:min => 99, :max => 0},

@@ -19,16 +19,23 @@ class RoutePlanner
 		ambulances_to_order = @ambulances.map{|ambulance| ambulance.next_time_available <= time ? ambulance : nil}.compact
 		until available_people.empty?
 			ambulances_to_order.each do |a|
+				closest = a.closest_hospital(@hospitals)
+
 				if available_people.size > 0
 					people_urgencies = available_people.map{|p| p.urgency_to(a, time)}
-					person_to_pick_up = available_people.delete_at(people_urgencies.index people_urgencies.max)
-					a.add_order(Order.new(a.coords, person_to_pick_up))
+					person_to_pick_up = available_people[people_urgencies.index people_urgencies.max]
+					if a.soonest_death(time) > time + 1 + a.distance_to(closest) && a.soonest_death(time) < time + 2 + a.distance_to(closest) + closest.distance_to(person_to_pick_up)
+						a.add_order(Order.new(a.coords, closest))
+					else
+						available_people.delete(person_to_pick_up)
+						a.add_order(Order.new(a.coords, person_to_pick_up))
+						a.add_order(Order.new(a.coords, a.closest_hospital(@hospitals))) if a.soonest_death(time) > time + 2 + a.distance_to(closest) + a.distance_to(a.closest_hospital(@hospitals))
+					end
 				end
-
 				if a.current_passengers.size == 4
 					# puts "returning home"
 					a.add_order(Order.new(a.coords, a.closest_hospital(@hospitals)))
-				elsif a.current_passengers.size == 3 && people_urgencies.max < 5
+				elsif a.current_passengers.size == 3 && people_urgencies.max < 5 && a.orders.last.object.class != Hospital
 					# puts "returning home 3/non-urgent"
 					a.add_order(Order.new(a.coords, a.closest_hospital(@hospitals)))
 				end
