@@ -106,6 +106,10 @@ class Voronoi
 		@points << point
 	end
 
+	def simulate_move(coord)
+		#TODO
+	end
+
 	def move
 		if first_turn?
 			report(0.33*$dimensions[:x], 0.33*$dimensions[:y])

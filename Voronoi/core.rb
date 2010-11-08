@@ -1,0 +1,7 @@
+require 'Point'
+require 'Placement'
+require 'Line'
+require 'Bisector'
+require 'Polygon'
+require 'Game'
+require 'Player'
