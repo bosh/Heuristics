@@ -20,11 +20,13 @@ class Placement < Point
 	end
 
 	def polygon
-		#TODO
-		bisectors = player.game.all_placements.map{|p| bisector_to(p)}
-		Polygon.new(self, bisectors)
-		#find all bisectors to all other points
-		#make union of bisectors
-		#return set of vertices that define polygon
+		bisectors = player.game.all_placements.map{|p| self.bisector_to(p)}
+		boundaries = [
+			Line.new(Point.new(0, 0), Point.new(0, $dimensions[:y])),
+			Line.new(Point.new(0, 0), Point.new($dimensions[:x], 0)),
+			Line.new(Point.new($dimensions[:x], $dimensions[:y]), Point.new(0, $dimensions[:y])),
+			Line.new(Point.new($dimensions[:x], $dimensions[:y]), Point.new($dimensions[:x], 0))
+		]
+		Polygon.new(self, bisectors += boundaries)
 	end
 end

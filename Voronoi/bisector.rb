@@ -1,5 +1,5 @@
 class Bisector < Line
-	attr_accessor :midpoint, :slope
+	attr_accessor :midpoint
 	def initialize(point_one, point_two)
 		@slope = ( -1.0 ) / point_one.slope_to(point_two)
 		@midpoint = point_one.midpoint_to(point_two)
