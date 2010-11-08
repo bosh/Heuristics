@@ -1,27 +1,40 @@
+require 'socket'
+$hostname = "localhost"
+$port = 23000
+
 class Game
 	attr_accessor :players, :scores, :current_player, :connection, :moves
 	def initialize
-		@players = []
 		connect!
 		play!
+		disconnect!
 	end
 
 	def connect!
-		#connect
-		#find out player number
-		#find out total players in game
-		#find out moves per player
-		#create that many players
-		#assign current_player whichever one this client is
+		@connection = TCPSocket.open($hostname, $port)
+		while line = @connection.gets()
+			break if line =~ /(\d+)\W+(\d+)\W+(\d+)/
+		end
+		$move_count = $1
+		$player_count = $2
+		$player_number = $3
+		@players = Array.new($player_count, Player.new(self))
+		@current_player = @players[$player_number - 1] #Assumes players count 1-Number, not 0-Number-1
+	end
+
+	def disconnect!
+		@connection.close
 	end
 
 	def play!
-		#TODO
-		#run wait for message loop here
-		#read in messages
-		#if point data, add it to a player
-		#if asking for a move
-		respond choose_move
+		while line = @connection.gets
+			#TODO
+			#run wait for message loop here
+			#read in messages
+			#if point data, add it to a player
+			#if asking for a move
+			respond choose_move
+		end
 	end
 
 	def choose_move
