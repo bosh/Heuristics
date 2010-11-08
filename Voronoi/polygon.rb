@@ -36,7 +36,7 @@ class Polygon
 			push_line = poly.last.lines - poly[-2].lines #should also end up with only one
 			open_lines = [unshift_line, push_line]
 
-			next_closest = {:distance => 9999, :intersection => nil, :line}
+			next_closest = {:distance => 9999, :intersection => nil, :line => nil}
 			open_lines.each do |line|
 				lines.select{|l| l[:line] == line}.first[:intersections].each do |inter| #for all intersections on the current line
 					if !poly.include?(inter) && @center.distance_to(inter) < next_closest[:distance] #skipping already used intersections
