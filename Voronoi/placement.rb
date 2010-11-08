@@ -29,4 +29,8 @@ class Placement < Point
 		]
 		Polygon.new(self, bisectors += boundaries)
 	end
+
+	def score
+		self.polygon.area
+	end
 end

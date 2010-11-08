@@ -1,5 +1,5 @@
 class Game
-	attr_accessor :players, :current_player, :connection, :moves
+	attr_accessor :players, :scores, :current_player, :connection, :moves
 	def initialize
 		@players = []
 		connect!
@@ -28,13 +28,15 @@ class Game
 		if first_turn?
 			Point.new($dimensions[:x]*0.33, $dimensions[:y]*0.33)
 		else
+			@scores = nil
+
 			options = generate_options
 			point = []
 			score = 0
 			options.each do |o| #YUUUUUUP all I do is choose the most score I can get at any step.
-				o_score = simulate_future(o)
-				if o_score > score
-					score = o_score
+				future = simulate_future(o)
+				if future.current_player_score > score
+					score = future.current_player_score
 					point = o
 				end
 			end
@@ -63,5 +65,13 @@ class Game
 	def respond
 		#TODO
 		#send message through the connection
+	end
+
+	def scores
+		@scores ||= @players.map{|p| p.score}
+	end
+
+	def current_player_score
+		scores[@players.index(current_player)]
 	end
 end
