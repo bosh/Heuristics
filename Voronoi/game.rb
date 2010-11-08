@@ -3,7 +3,7 @@ $hostname = "localhost"
 $port = 23000
 
 class Game
-	attr_accessor :players, :scores, :current_player, :connection, :moves
+	attr_accessor :players, :current_player, :connection, :moves
 	def initialize
 		connect!
 		play!
@@ -46,8 +46,6 @@ class Game
 		if first_turn?
 			Point.new($dimensions[:x]*0.33, $dimensions[:y]*0.33)
 		else
-			@scores = nil
-
 			options = generate_options
 			point = nil
 			score = 0
@@ -86,7 +84,7 @@ class Game
 	end
 
 	def scores
-		@scores ||= @players.map{|p| p.score}
+		@players.map{|p| p.score}
 	end
 
 	def current_player_score
