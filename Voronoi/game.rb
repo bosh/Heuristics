@@ -15,9 +15,9 @@ class Game
 		while line = @connection.gets()
 			break if line =~ /(\d+)\W+(\d+)\W+(\d+)/
 		end
-		$move_count = $1
-		$player_count = $2
-		$player_number = $3
+		$move_count = $1.to_i
+		$player_count = $2.to_i
+		$player_number = $3.to_i
 		@players = Array.new($player_count, Player.new(self))
 		@current_player = @players[$player_number - 1] #Assumes players count 1-Number, not 0-Number-1
 	end
@@ -28,12 +28,17 @@ class Game
 
 	def play!
 		while line = @connection.gets
-			#TODO
-			#run wait for message loop here
-			#read in messages
-			#if point data, add it to a player
-			#if asking for a move
-			respond choose_move
+			puts line
+			break if line =~ /WIN/i
+			break if line =~ /LOSE/i
+			if line =~ /YOURTURN/i
+				respond(choose_move)
+			elsif line =~ /(\d+)\W+(\d+)\W+(\d+)/
+				player = @players[$3.to_i - 1]
+				x = $1.to_i
+				y = $2.to_i
+				player.add_placement(x, y)
+			end
 		end
 	end
 
@@ -44,7 +49,7 @@ class Game
 			@scores = nil
 
 			options = generate_options
-			point = []
+			point = nil
 			score = 0
 			options.each do |o| #YUUUUUUP all I do is choose the most score I can get at any step.
 				future = simulate_future(o)
@@ -53,6 +58,7 @@ class Game
 					point = o
 				end
 			end
+			@current_player.add_placement(point.x, point.y)
 			point
 		end
 	end
@@ -75,9 +81,8 @@ class Game
 		#returns a score
 	end
 
-	def respond
-		#TODO
-		#send message through the connection
+	def respond(point)
+		@connection.print(point.x, point.y)
 	end
 
 	def scores

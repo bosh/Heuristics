@@ -5,6 +5,10 @@ class Player
 		@placements = []
 	end
 
+	def add_placement(x, y)
+		@placements << Placement.new(self, x, y)
+	end
+
 	def opponent_placements
 		@game.players.reject{|p| p == self}.map{|p| p.placements}
 	end
