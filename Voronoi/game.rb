@@ -1,5 +1,5 @@
 class Game
-	attr_accessor :players, :current_player, :connection
+	attr_accessor :players, :current_player, :connection, :moves
 	def initialize
 		@players = []
 		connect!
@@ -10,6 +10,7 @@ class Game
 		#connect
 		#find out player number
 		#find out total players in game
+		#find out moves per player
 		#create that many players
 		#assign current_player whichever one this client is
 	end

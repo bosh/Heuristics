@@ -53,7 +53,7 @@ class Bisector
 	end
 
 	def intersection_with(other) #Based on http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/
-		return nil if @slope = other.slope #Parallel
+		return nil if @slope == other.slope #Parallel
 		x_self = @x2 - @x1
 		x_other = other.x1 - other.x2
 		x_diff = @x1 - other.x1
