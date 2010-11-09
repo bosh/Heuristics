@@ -1,13 +1,15 @@
 require 'socket'
 $hostname = "localhost"
-$port = 23000
+$port = 20000
 
 class Game
 	attr_accessor :players, :current_player, :connection, :moves
-	def initialize
-		connect!
-		play!
-		disconnect!
+	def initialize(simulation = false)
+		if !simulation
+			connect!
+			play!
+			disconnect!
+		end
 	end
 
 	def connect!
@@ -38,21 +40,27 @@ class Game
 				x = $1.to_i
 				y = $2.to_i
 				player.add_placement(x, y)
+			else
+				puts "line did not match any known format"
 			end
 		end
 	end
 
 	def choose_move
+		puts "choosing move"
 		if first_turn?
+			puts "first turn!"
 			Point.new($dimensions[:x]*0.33, $dimensions[:y]*0.33)
 		else
+			puts "other turns"
 			options = generate_options
 			point = nil
 			score = 0
 			options.each do |o| #YUUUUUUP all I do is choose the most score I can get at any step.
 				future = simulate_future(o)
-				if future.current_player_score > score
-					score = future.current_player_score
+				future_score = future.current_player_score
+				if future_score > score
+					score = future_score
 					point = o
 				end
 			end
@@ -73,14 +81,22 @@ class Game
 		@current_player.opponent_placements.map{|p| p.generate_possibilities}
 	end
 
-	def simulate_future
-		#TODO
-		#clone current state, recalculate bisectors, sum area
-		#returns a score
+	def simulate_future(point)
+		simulation = Game.new()
+		simulation.players = Array.new(self.players.size, Player.new(simulation))
+		simulation.current_player = simulation.players[self.players.index(current_player)]
+		simulation.players.each_with_index do |player, index|
+			@players[index].placements.each do |placement|
+				player.add_placement(placement.x, placement.y)
+			end
+		end
+		simulation.current_player.add_placement(point.x, point.y)
+		simulation
 	end
 
 	def respond(point)
-		@connection.print(point.x, point.y)
+		puts "Made move: (#{point.x.to_i},#{point.y.to_i})"
+		@connection.print(point.x.to_i, point.y.to_i)
 	end
 
 	def scores
