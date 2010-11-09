@@ -2,7 +2,7 @@ class Polygon
 	attr_accessor :center, :vertices
 	def initialize(center, lines)
 		@center = center
-		lines.map! do |line| #turn bisectors and edges into line-intersection sets
+		lines = lines.map do |line| #turn bisectors and edges into line-intersection sets
 			intersections = []
 			lines.each{|other| intersections << Intersection.new(line, other) unless line == other }
 			{:line => line, :intersections => intersections}
@@ -18,6 +18,7 @@ class Polygon
 				end
 			end
 		end
+		p closest[:intersection]
 		poly.push closest[:intersection]
 
 		next_closest = {:distance => 9999, :intersection => nil}

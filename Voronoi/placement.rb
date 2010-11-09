@@ -27,6 +27,8 @@ class Placement < Point
 			Line.new(Point.new($dimensions[:x], $dimensions[:y]), Point.new(0, $dimensions[:y])),
 			Line.new(Point.new($dimensions[:x], $dimensions[:y]), Point.new($dimensions[:x], 0))
 		]
+		puts bisectors.map{|b| b.class}.uniq
+		puts boundaries.map{|b| b.class}.uniq
 		Polygon.new(self, bisectors += boundaries)
 	end
 

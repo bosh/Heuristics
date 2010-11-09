@@ -15,13 +15,14 @@ class Game
 	def connect!
 		@connection = TCPSocket.open($hostname, $port)
 		while line = @connection.gets()
-			break if line =~ /(\d+)\W+(\d+)\W+(\d+)/
+			puts line
+			break if line =~ /\d+\W+(\d+)\W+(\d+)\W+(\d+)/
 		end
 		$move_count = $1.to_i
 		$player_count = $2.to_i
 		$player_number = $3.to_i
 		@players = Array.new($player_count, Player.new(self))
-		@current_player = @players[$player_number - 1] #Assumes players count 1-Number, not 0-Number-1
+		@current_player = @players[$player_number] #Assumes players count 1-Number, not 0-Number-1
 	end
 
 	def disconnect!
@@ -36,7 +37,7 @@ class Game
 			if line =~ /YOURTURN/i
 				respond(choose_move)
 			elsif line =~ /(\d+)\W+(\d+)\W+(\d+)/
-				player = @players[$3.to_i - 1]
+				player = @players[$3.to_i]
 				x = $1.to_i
 				y = $2.to_i
 				player.add_placement(x, y)
@@ -49,11 +50,9 @@ class Game
 	def choose_move
 		puts "choosing move"
 		if first_turn?
-			puts "first turn!"
 			Point.new($dimensions[:x]*0.33, $dimensions[:y]*0.33)
 		else
-			puts "other turns"
-			options = generate_options
+			options = generate_options.flatten
 			point = nil
 			score = 0
 			options.each do |o| #YUUUUUUP all I do is choose the most score I can get at any step.
@@ -77,14 +76,22 @@ class Game
 		@players.map{|p| p.placements}.flatten
 	end
 
+	def opponents
+		@players.reject{|p| p == @current_player}
+	end
+
+	def opponent_placements
+		opponents.map{|p| p.placements}
+	end
+
 	def generate_options
-		@current_player.opponent_placements.map{|p| p.generate_possibilities}
+		opponent_placements.flatten.map{|p| p.generate_possibilities}
 	end
 
 	def simulate_future(point)
 		simulation = Game.new()
 		simulation.players = Array.new(self.players.size, Player.new(simulation))
-		simulation.current_player = simulation.players[self.players.index(current_player)]
+		simulation.current_player = simulation.players[$player_number]
 		simulation.players.each_with_index do |player, index|
 			@players[index].placements.each do |placement|
 				player.add_placement(placement.x, placement.y)
@@ -95,8 +102,8 @@ class Game
 	end
 
 	def respond(point)
-		puts "Made move: (#{point.x.to_i},#{point.y.to_i})"
-		@connection.print(point.x.to_i, point.y.to_i)
+		puts "Made move: (#{point.x.to_i}, #{point.y.to_i})"
+		@connection.puts("#{point.x.to_i} #{point.y.to_i}")
 	end
 
 	def scores
