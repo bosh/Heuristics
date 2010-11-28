@@ -1,7 +1,8 @@
 class Person
-	attr_accessor :n, :attributes
-	def initialize(n)
+	attr_accessor :n, :attributes, :path
+	def initialize(n, path)
 		@n = n
+		@path = path
 		generate_weights!
 		report
 	end
@@ -65,7 +66,7 @@ class Person
 	end
 
 	def report
-		File.new('person.txt', 'w') do |file|
+		File.new(@path, 'w') do |file|
 			file.write @attributes.join("\n")
 		end
 	end
@@ -73,5 +74,11 @@ end
 
 ###
 
-$n = gets().to_i
-person = Person.new($n)
+$host = 'localhost'
+$port = 20000
+$filepath = './person.txt'
+connection = TCPSocket.open($host, $port)
+connection.puts "Player"
+n = connection.readline.split(":")[1].to_i
+person = Person.new(n, $filepath)
+connection.puts $filepath
