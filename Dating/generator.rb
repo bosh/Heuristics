@@ -19,14 +19,26 @@ class Person
 			doubles.map!{(pos*rand).floor}
 			halves = Array.new(doubles.size)
 			halves.map!{(pos*rand).floor}
-			doubles.each{|d| positives[d] *= 2 }
+			doubles.each do |d|
+				if positives[d] > 0.5
+					positives[d] *= 2
+				else
+					halves.pop
+				end
+			end
 			halves.each {|h| positives[h] /= 2 }
 			#negatives
 			doubles = Array.new((2 + neg*rand).to_i)
 			doubles.map!{(neg*rand).floor}
 			halves = Array.new(doubles.size)
 			halves.map!{(neg*rand).floor}
-			doubles.each{|d| negatives[d] *= 2 }
+			doubles.each do |d|
+				if negatives[d] < -0.5
+					negatives[d] *= 2
+				else
+					halves.pop
+				end
+			end
 			halves.each {|h| negatives[h] /= 2 }
 		end
 		positive_total = positives.inject{|s,v| s += v}
