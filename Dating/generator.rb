@@ -32,6 +32,7 @@ class Person
 		positive_total = positives.inject{|s,v| s += v}
 		until positive_total <= 1
 			positive_total -= positives.pop
+			zeros += 1
 		end
 		if positive_total < 1
 			positives[0] += 1 - positive_total
@@ -39,6 +40,7 @@ class Person
 		negative_total = negatives.inject{|s,v| s += v}
 		until negative_total >= -1
 			negative_total -= negatives.pop
+			zeros += 1
 		end
 		if negative_total > -1
 			negatives[0] -= -1 - negative_total
