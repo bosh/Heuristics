@@ -12,6 +12,7 @@ class DatingGame
 	end
 
 	def play!
+		@connection.puts "Matchmaker"
 		while line = @connection.gets
 			puts line
 			if line =~ /N:\d+/ && !@n		#format: N:100
