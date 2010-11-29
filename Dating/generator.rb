@@ -65,8 +65,8 @@ end
 $host = 'localhost'
 $port = 20000
 $filepath = './person.txt'
-connection = TCPSocket.open($host, $port)
-connection.puts "Person"
+# connection = TCPSocket.open($host, $port)
+# connection.puts "Person"
 
 # n = nil
 # while line = connection.gets
