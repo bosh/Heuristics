@@ -20,15 +20,15 @@ class Person
 		postives = skew(positives, 5, rand*0.5*positives.size)
 		negatives = skew(negatives, 5, rand*0.5*negatives.size)
 		#Round to three places
-		positives.map!{|i| ((i*1000).floor/1000.0)}
-		negatives.map!{|i| ((i*1000).floor/1000.0)}
+		positives.map!{|i| ((i*100).floor/100.0)}
+		negatives.map!{|i| ((i*100).floor/100.0)}
 		until positives.inject{|s,v| s += v} == 1
 			positives[0] += 1 - positives.inject{|s,v| s += v}
-			positives.map!{|i| ((i*1000).round/1000.0)}
+			positives.map!{|i| ((i*100).round/100.0)}
 		end
 		until negatives.inject{|s,v| s += v} == -1
 			negatives[0] += -1 - negatives.inject{|s,v| s += v}
-			negatives.map!{|i| ((i*1000).round/1000.0)}
+			negatives.map!{|i| ((i*100).round/100.0)}
 		end
 		all = Array.new(zeros, 0)
 		all += negatives
