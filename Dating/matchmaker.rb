@@ -18,7 +18,7 @@ class DatingGame
 			if line =~ /N:\d+/ && !@n		#format: N:100
 				@n = line.split(":").last.to_i
 			elsif @candidates.size < 20		#format: SCORE1:v1:v2: ... :vn
-				@candidates << PregenCandidate.new(line, @n)
+				@candidates << PregenCandidate.new(line, @n) if line =~ /\d+/
 			else							#format: SCORE:0:0:0
 				@candidates.last.score = line.split(":")[1].to_f
 				c = generate_new_candidate
@@ -31,7 +31,7 @@ class DatingGame
 	def generate_new_candidate
 		attr_ary = case candidates.size
 		when 20	#The 21st candidate should be the best candidate thus far, made into a bit vector
-			absolute_scores = candidate_scores.map{|i| i.abs}
+			absolute_scores = candidate_scores.to_a.flatten.map{|i| i.abs}
 			best_thus_far = @candidates[absolute_scores.index(absolute_scores.max)]
 			if best_thus_far.score > 0 #customized rounding on all scores for the best known candidate thus far
 				best_thus_far.attributes.map{|v| v < 0.4 ? 0 : v >= 0.55 ? 1 : 0}
@@ -51,15 +51,27 @@ class DatingGame
 			half
 		when 24	#Alternating on-off attributes (N/2 period square wave) (done in 0-1-0-1 pattern as all others start with 1 and end with 0 if even length)
 			(0...@n).map{|i| i%2==0 ? 0 : 1}
+		when 39 #Last attempt. OH NOES
+			absolute_scores = candidate_scores.to_a.flatten.map{|i| i.abs}
+			best_thus_far = @candidates[absolute_scores.index(absolute_scores.max)]
+			if best_thus_far.score > 0 #then generate as in below
+				x = candidate_attributes_matrix #TODO change anything necessary that is duplicated from below
+				y = candidate_scores
+				w_star = (x.t * x).inv * y
+				w_star.to_a.flatten.map{|v| v.abs < 0.33 ? 0 : v >= 0.55 ? 1 : 0} #1 for attrs we want, anything for zeros, 0 for attrs we dont want
+			else #the best score is actually the most negative. Flip the array and resubmit to guarantee getting it at positive
+				best_thus_far.attributes.map{|v| v > 0 ? 0 : 1}
+			end
 		else #After sacrificing five to crazy ideas, why not just let the optimizer work? B)
 			x = candidate_attributes_matrix
 			y = candidate_scores
 			w_star = (x.t * x).inv * y
 			w_star.to_a.flatten.map{|v| v.abs < 0.33 ? 0 : v >= 0.55 ? 1 : 0} #1 for attrs we want, anything for zeros, 0 for attrs we dont want
 		end
+		Candidate.new(attr_ary)
 	end
 
-	def candidate_scores; Matrix[@candidates.map{|c| [c.score]} end
+	def candidate_scores; Matrix[@candidates.map{|c| c.score}] end
 	def candidate_attributes_matrix; Matrix[@candidates.map(&:attributes)] end
 end
 
