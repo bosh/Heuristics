@@ -22,12 +22,14 @@ class Person
 		#Round to three places
 		positives.map!{|i| ((i*1000).floor/1000.0)}
 		negatives.map!{|i| ((i*1000).floor/1000.0)}
-		#If rounding causes slight sum reduction, take that out of the first value
-		positives[0] += 1 - positives.inject{|s,v| s += v}
-		negatives[0] += -1 - negatives.inject{|s,v| s += v}
-		#reduce to three places to avoid floating point mantissa growth again
-		positives.map!{|i| ((i*1000).round/1000.0)}
-		negatives.map!{|i| ((i*1000).round/1000.0)}
+		until positives.inject{|s,v| s += v} == 1
+			positives[0] += 1 - positives.inject{|s,v| s += v}
+			positives.map!{|i| ((i*1000).round/1000.0)}
+		end
+		until negatives.inject{|s,v| s += v} == -1
+			negatives[0] += -1 - negatives.inject{|s,v| s += v}
+			negatives.map!{|i| ((i*1000).round/1000.0)}
+		end
 		all = Array.new(zeros, 0)
 		all += negatives
 		all += positives
@@ -65,17 +67,16 @@ end
 $host = 'localhost'
 $port = 20000
 $filepath = './person.txt'
-# connection = TCPSocket.open($host, $port)
-# connection.puts "Person"
+connection = TCPSocket.open($host, $port)
+connection.puts "Person"
 
-# n = nil
-# while line = connection.gets
-# 	puts line.chop
-# 	if !n
-# 		n = line.split(":")[1].to_i
-# 		person = Person.new(n, $filepath)
- 		person = Person.new(10, $filepath)
-# 	end
-# end
-# connection.puts $filepath
-# connection.close
+n = nil
+while line = connection.gets
+	puts line.chop
+	if !n
+		n = line.split(":")[1].to_i
+		Person.new(n, $filepath)
+		connection.puts $filepath
+	end
+end
+connection.close
