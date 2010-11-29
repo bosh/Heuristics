@@ -68,6 +68,7 @@ class Candidate
 	def initialize(attrs)
 		@score = nil
 		@attributes = attrs
+		@n = @attributes.length
 	end
 
 	def to_submit; @attributes.join(":") end
