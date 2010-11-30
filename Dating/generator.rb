@@ -64,8 +64,8 @@ end
 
 ###
 
-$host = 'localhost'
-$port = 20000
+$host = ARGV[0] || 'localhost'
+$port = (ARGV[1] || 20000).to_i
 $filepath = './person.txt'
 connection = TCPSocket.open($host, $port)
 connection.puts "Person"
