@@ -56,7 +56,7 @@ class Person
 	end
 
 	def report
-		File.open(@path, 'w') do |file|
+		File.open(@path, 'w+') do |file|
 			file.print @attributes.join("\n")
 		end
 	end
@@ -66,7 +66,7 @@ end
 
 $host = ARGV[0] || 'localhost'
 $port = (ARGV[1] || 20000).to_i
-$filepath = './person.txt'
+$filepath = '/tmp/person.txt'
 connection = TCPSocket.open($host, $port)
 connection.puts "Person"
 
