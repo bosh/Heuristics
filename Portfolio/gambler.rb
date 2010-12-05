@@ -79,6 +79,25 @@ class Gambler
 	def play_long_game
 		#TODO
 	end
+
+	def gambles_with_category(cat)
+		@gambles.select{|g| g.category == cat}
+	end
+
+	def gambles_linked_to(gamble)
+		@links.select{|l| l.gambles}.uniq - [gamble]
+	end
+
+	def full_link_chain_from(gamble)
+		open_links = gamble.links
+		checked = [gamble]
+		next_gambles = open_links.map{|l| l.gambles.reject{|g| !checked.include?(g)}}.flatten.uniq
+		while !next_gambles.empty?
+			open_links = next_gambles.map{|g| g.links}.flatten.uniq
+			checked += next_gambles
+			next_gambles = open_links.map{|l| l.gambles.select{|g| !checked.include?(g)}}.flatten
+		end
+	end
 end
 
 ###
