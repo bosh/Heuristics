@@ -18,6 +18,10 @@ class Gamble
 		@category = nil
 		@history = []
 	end
+
+	def linked_gambles
+		@links.map{|l| l.gambles}.flatten.uniq - [gamble]
+	end
 end
 
 class Link
@@ -84,8 +88,10 @@ class Gambler
 		@gambles.select{|g| g.category == cat}
 	end
 
-	def gambles_linked_to(gamble)
-		@links.select{|l| l.gambles}.uniq - [gamble]
+	def fully_linked_system?(gamble)
+		other_gambles = gamble.linked_gambles
+		own_set = [gamble] + other_gambles
+		other_gambles.each{|g| (g.linked_gambles + [g]).each{|gam| if !own_set.include?(gam){ return false }}}
 	end
 
 	def full_link_chain_from(gamble)
