@@ -30,8 +30,12 @@ end
 class Gambler
 	attr_accessor :gambles, :links, :history, :gametype, :connection
 	def initialize(gametype, host, port)
-		load_data
+		@gambles = []
+		@links = []
+		@history = []
+		@gametype = gametype
 		@connection = TCPSocket.open(host, port)
+		load_data
 		if gametype == :short
 			play_short_game
 		elsif gametype == :long
@@ -40,7 +44,32 @@ class Gambler
 	end
 
 	def load_data
-		#TODO
+		mode = nil
+		File.readlines('data.txt') do |line|
+			if line =~ /#gambleatts/i
+				mode = :gambleatts
+			elsif line =~ /#gamble/
+				mode = :gamble
+			elsif line =~ /#link/
+				mode = :link
+			elsif mode == :gamble
+				line =~ /(\d+), (\d+\.\d+), (\d+\.\d+), (\d+\.\d+), (\d+\.\d+), (\d+\.\d+), (\d+\.\d+)/
+				@gambles << Gamble.new($1, $2, $3, $4, $5, $6)
+			elsif mode == :gambleatts #This will change when category is implemented as a 0-15 number
+				line =~ /(\d+), (\d), (\d), (\d), (\d)/
+				category = 8*($2.to_i) + 4*($3.to_i) + 2*($4.to_i) + 1*($5.to_i)
+				@gambles.select{|g| g.id == $1.to_i}.first.category = category
+			elsif mode == :link
+				line =~ /(\d+), (\d+)/
+				add_link($1.to_i, $2.to_i)
+			end
+		end
+	end
+
+	def add_link(id_one, id_two)
+		link = Link.new(id_one, id_two)
+		@gambles.select{|g| [id_one, id_two].include? g.id}.each{|g| g.links << link}
+		@links << link
 	end
 
 	def play_short_game
