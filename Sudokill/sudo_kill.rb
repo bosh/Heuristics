@@ -18,14 +18,13 @@ class SudoKiller
 
 	# Main loop
 	def play!
-		@moves = []
 		while line = read
 			if line =~ /(READY|WAIT)/
 				# do nothing, this is just waiting
-			elsif line =~ /REJECT/
-				# we made a bad move :(
+			elsif line =~ /REJECT/ # we made a bad move :(
 				# if this weren't an autofail, there would need to be a move undo-er method
 			elsif line =~ /START\|(\d+)\|(\d+)\|(.*)/
+				@moves = []
 				@time_taken = 0
 				@player_number = $1.to_i
 				@player_count = $2.to_i
@@ -67,13 +66,13 @@ class SudoKiller
 
 	# A move from this instance, returns a Move
 	def make_move!
-		row, col, val = nil, nil, nil
-		@time_taken += lambda{ |start|
+		row, col, val, time_diff = lambda{
+			start = Time.now
 			@moves << move = row, col, val = make_move_for_player_and_board(@player_number, @board.clone)
 			send_move(row, col, val)
-			@time_taken += (Time.now - start)
-		}.call(Time.now)
-
+			[row, col, val, (Time.now - start)]
+		}.call
+		@time_taken += time_diff
 		update_board!(row, col, val) # If the server echoes your move to you, this is redundant.
 		advance_turn!
 	end
