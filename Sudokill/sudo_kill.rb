@@ -97,7 +97,7 @@ class Board
 			end
 		end
 		@turn = args.has_key?[:turn] ? args[:turn] : 0
-		@placements = args[:do_placements] ? create_all_placements! : []
+		@placements = args[:skip_placements] ? [] : create_all_placements!
 	end
 
 	def create_all_placements
@@ -115,8 +115,7 @@ class Board
 			empty?(@row, i) ? options << [@row, i]
 			empty?(i, @col) ? options << [i, @col]
 		end
-		#TODO: avoid collecting the same point twice. This should happen where i == row or i == col
-		options
+		options.uniq!
 	end
 
 	def collect_all_options
