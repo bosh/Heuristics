@@ -1,11 +1,12 @@
 require 'socket'
 
 class SudoKiller
-	attr_accessor :connection, :current_board, :time_taken, :player_number, :player_count, :moves, :turn
+	attr_accessor :name, :connection, :current_board, :time_taken, :player_number, :player_count, :moves, :turn
 
-	def initialize(host, port)
+	def initialize(name, host, port)
+		@name = name
 		connect(host, port)
-		write("B0$H")
+		write(@name)
 		play!
 	end
 
@@ -34,10 +35,10 @@ class SudoKiller
 				@player_number = $1.to_i
 				@player_count = $2.to_i
 				@current_board = Board.new(:text => $3.chomp)
-			elsif line =~ /\A(\d+) (\d+) (\d+) (\d+)/
+			elsif line =~ /\A(\d+) (\d+) (\d+)/ #Thought there was a player number here
 				#Idea, it would be cool to be able to run analysis on opponent moves and figure out their bias/preferences, and then spend more time computing and their expected path
 				puts "Move noted"
-				take_move!($1.to_i, $2.to_i, $3.to_i, $4.to_i)
+				take_move!($1.to_i, $2.to_i, $3.to_i) #, $4.to_i)
 			elsif line =~ /ADD\|(.*)/
 				puts "My turn..."
 				make_move!
@@ -58,8 +59,8 @@ class SudoKiller
 	end
 
 	# A move reported from the server, returns a Move
-	def take_move!(row, col, number, player)
-		@moves << [row, col, number]
+	def take_move!(row, col, val)#, player)
+		@moves << [row, col, val]
 		update_board!(row, col, val)
 		advance_turn!
 	end
@@ -208,6 +209,7 @@ end
 
 ###
 
-$host = ARGV[0] || 'localhost'
-$port = (ARGV[1] || 44444).to_i
-game = SudoKiller.new($host, $port)
+$name = ARGV[0] || "B0$H"
+$host = ARGV[1] || 'localhost'
+$port = (ARGV[2] || 44444).to_i
+game = SudoKiller.new($name, $host, $port)
