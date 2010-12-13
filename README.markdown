@@ -15,7 +15,6 @@ Evasion Game Server, class project
 
 Contents
 ---
-
     Ambulance Game (K Means clustering, optimal graph traversal drawing)
     Dating Game (OLS solver)
     Mint Problem (Single-parent randomized solution children generation)
