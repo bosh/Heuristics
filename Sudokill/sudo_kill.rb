@@ -42,8 +42,8 @@ class SudoKiller
 			elsif line =~ /ADD\|(.*)/
 				puts "My turn..."
 				make_move!
-			elsif line =~ /(WIN|LOSE|GAME OVER)/
-				puts "I #{$1}!"
+			elsif line =~ /GAME OVER\|(\S+)/
+				puts "#{$1} won!"
 				disconnect
 				exit(0)
 			end
@@ -60,9 +60,11 @@ class SudoKiller
 
 	# A move reported from the server, returns a Move
 	def take_move!(row, col, val)#, player)
-		@moves << [row, col, val]
-		update_board!(row, col, val)
-		advance_turn!
+		if @moves.last != [row, col, val]
+			@moves << [row, col, val]
+			update_board!(row, col, val)
+			advance_turn!
+		end
 	end
 
 	# A move from this instance, returns a Move
@@ -87,7 +89,7 @@ class Board
 		if args.has_key? :text
 			@cells = args[:text].split("|").map{|line| line.split(" ").map{|c| c.to_i} }
 		elsif args.has_key? :cells
-			@cells = args[:cells].clone
+			@cells = Marshal.load(Marshal.dump(args[:cells]))
 			if args.has_key? :move
 				@row = args[:move][:row]
 				@col = args[:move][:col]
@@ -103,8 +105,11 @@ class Board
 		links = collect_all_placements.collect do |p|
 			{:connector => p, :result => p.result, :score => p.score}
 		end
-		links.max{|a,b| a[:score] <=> b[:score]}[:connector]
-		#TODO use score
+		if links.empty?
+			Placement.new(self,6,6,6)
+		else
+			links.max{|a,b| a[:score] <=> b[:score]}[:connector]
+		end
 	end
 
 	def collect_all_placements
@@ -128,7 +133,12 @@ class Board
 			options << [@row, i] if empty?(@row, i)
 			options << [i, @col] if empty?(i, @col)
 		end
-		options.uniq
+		if options.empty?
+			puts "No options, choosing from anywhere..."
+			collect_all_options
+		else
+			options.uniq
+		end
 	end
 
 	def score
@@ -178,6 +188,10 @@ class Board
 			Placement.new(self, row, col, val).result
 		end
 	end
+
+	def to_s
+		"Board:(#{@turn}, #{@row}, #{@col} :: #{@placements.size})"
+	end
 end
 
 class Placement
@@ -204,6 +218,10 @@ class Placement
 
 	def to_a
 		[row, col, val]
+	end
+
+	def to_s
+		"Placement:(#{@row}, #{@col}, #{@val})"
 	end
 end
 
