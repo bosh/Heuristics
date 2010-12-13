@@ -15,10 +15,10 @@ Evasion Game Server, class project
 
 Contents
 ---
-    Ambulance Game (K Means clustering, optimal graph traversal drawing)
-    Dating Game (OLS solver)
-    Mint Problem (Single-parent randomized solution children generation)
-    NoTipping (Simple Alpha-Beta pruning 2-player game with two game modes/segments of play)
+Ambulance Game (K Means clustering, optimal graph traversal drawing)
+Dating Game (OLS solver)
+Mint Problem (Single-parent randomized solution children generation)
+NoTipping (Simple Alpha-Beta pruning 2-player game with two game modes/segments of play)
     Portfolio (Unfinished, wanted to decompose linked systems into a probability model, was out of my league for the time I had)
     Salesman (Euclidean distance complete graph Traveling Salesman Problem solver. Incomplete)
     Sudokill (Competitive/killer sudoku player using Alpha-Beta pruning for moves)
