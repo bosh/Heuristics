@@ -101,8 +101,12 @@ class Board
 	end
 
 	def optimal_move
+		places = collect_all_placements
 		depth = (@turn > 2) ? 2 : 1
-		links = collect_all_placements.collect do |p|
+		depth += 1 if places.size < 10
+		depth -= 1 if places.size > 100 && depth > 1
+		puts "Looking through depth: #{depth}"
+		links = places.collect do |p|
 			{:connector => p, :result => p.result, :score => p.score(depth)} #TODO, tweak depth based on time
 		end
 		if links.empty?
