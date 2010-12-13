@@ -20,21 +20,26 @@ class SudoKiller
 	def play!
 		while line = read
 			if line =~ /(READY|WAIT)/
+				puts "Ready and waiting"
 				# do nothing, this is just waiting
 			elsif line =~ /REJECT/ # we made a bad move :(
+				puts "Derp..."
 				# if this weren't an autofail, there would need to be a move undo-er method
 			elsif line =~ /START\|(\d+)\|(\d+)\|(.*)/
+				puts "Starting a new game"
 				@moves = []
 				@time_taken = 0
 				@moves = []
 				@turn = 0
 				@player_number = $1.to_i
 				@player_count = $2.to_i
-				@board = Board.new(:text => $3.chomp)
+				@current_board = Board.new(:text => $3.chomp)
 			elsif line =~ /\A(\d+) (\d+) (\d+) (\d+)/
 				#Idea, it would be cool to be able to run analysis on opponent moves and figure out their bias/preferences, and then spend more time computing and their expected path
+				puts "Move noted"
 				take_move!($1.to_i, $2.to_i, $3.to_i, $4.to_i)
-			elsif line =~ /ADD\|(\d+)\|(\d+)\|(.*)/
+			elsif line =~ /ADD\|(.*)/
+				puts "My turn..."
 				make_move!
 			elsif line =~ /(WIN|LOSE)/
 				puts "I #{$1}!"
@@ -63,7 +68,7 @@ class SudoKiller
 	def make_move!
 		row, col, val, time_diff = lambda{
 			start = Time.now
-			row, col, val = make_move_for_player_and_board(@player_number, @board.clone)
+			row, col, val = @current_board.optimal_move
 			@moves << [row,col,val]
 			send_move(row, col, val)
 			[row, col, val, (Time.now - start)]
@@ -71,15 +76,6 @@ class SudoKiller
 		@time_taken += time_diff
 		update_board!(row, col, val) # If the server echoes your move to you, this is redundant.
 		advance_turn!
-	end
-
-	# Simulation moves for any player, returning a hash {:board, :move}
-	def make_move_for_player_and_board(number, board)	#MAJOR TODO
-		if number == @player_number
-			find_optimal_move(board, row, col)
-		else #other player's turn, simulating appropriately
-			find_available_moves(board, row, col)
-		end
 	end
 end
 
