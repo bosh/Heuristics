@@ -68,7 +68,7 @@ class SudoKiller
 	def make_move!
 		row, col, val, time_diff = lambda{
 			start = Time.now
-			row, col, val = @current_board.optimal_move
+			row, col, val = @current_board.optimal_move.to_a
 			@moves << [row,col,val]
 			send_move(row, col, val)
 			[row, col, val, (Time.now - start)]
@@ -98,11 +98,16 @@ class Board
 	end
 
 	def optimal_move
-		#TODO
+		puts self
+		links = collect_all_placements.collect do |p|
+			{:connector => p, :result => p.result, :score => p.score}
+		end
+		links.max{|a,b| a[:score] <=> b[:score]}[:connector]
+		#TODO use score
 	end
 
 	def collect_all_placements
-		positions = if @row && @col
+		positions = if (@row && @col)
 			collect_limited_options
 		else
 			collect_all_options
@@ -122,7 +127,11 @@ class Board
 			options << [@row, i] if empty?(@row, i)
 			options << [i, @col] if empty?(i, @col)
 		end
-		options.uniq!
+		options.uniq
+	end
+
+	def score
+		collect_all_placements.size
 	end
 
 	def collect_all_options
@@ -141,22 +150,22 @@ class Board
 
 	# Gets all the values in the current row, column, and cell, and finds values from 1 to 9 that are not already included in the set
 	def possible_values(row, col)
-		((1..9).to_a - (row_values(row) + col_values(col) + cell_values(row, col)).uniq).sort
+		((1..9).to_a - (row_values(row) + col_values(col) + cell_values(row, col)).uniq)
 	end
 
 	# Returns the values already placed in the given row
 	def row_values(row)
-		(0..8).collect{|c| @cells[row, c]}
+		(0..8).collect{|c| @cells[row][c]}
 	end
 
 	# Returns the values already placed in the given column
 	def col_values(col)
-		(0..8).collect{|r| @cells[r, col]}
+		(0..8).collect{|r| @cells[r][col]}
 	end
 
 	def cell_values(row, col)
-		cell_row = row/3
-		cell_col = col/3
+		cell_row = 3*(row/3)
+		cell_col = 3*(col/3)
 		(0..8).collect{|i| @cells[cell_row + i/3][cell_col + i%3] }
 	end
 
@@ -182,6 +191,18 @@ class Placement
 
 	def result # Delay computation until necessary, but memoize afterwards
 		@child ||= Board.new(:cells => parent.cells, :move => {:row => @row, :col => @col, :val => @val}, :turn => @parent.turn+1)
+	end
+
+	def outbound_links
+		result.collect_all_placements
+	end
+
+	def score
+		result.score
+	end
+
+	def to_a
+		[row, col, val]
 	end
 end
 
