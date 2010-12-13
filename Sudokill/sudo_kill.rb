@@ -11,8 +11,8 @@ class SudoKiller
 
 	# Communication methods
 	def connect(h, p);	@connection = TCPSocket.open(h, p) end
-	def read;			l = @connection.readline; puts l; l end
-	def write(str);		puts(str); @connection.puts(str + "\n") end
+	def read;			l = @connection.readline; puts("R: " + l); l end
+	def write(str);		puts("W: " + str); @connection.puts(str + "\n") end
 	def disconnect;		@connection.close end
 	def send_move(row, col, val);	write("#{row} #{col} #{val}") end
 
@@ -41,7 +41,7 @@ class SudoKiller
 			elsif line =~ /ADD\|(.*)/
 				puts "My turn..."
 				make_move!
-			elsif line =~ /(WIN|LOSE)/
+			elsif line =~ /(WIN|LOSE|GAME OVER)/
 				puts "I #{$1}!"
 				disconnect
 				exit(0)
@@ -95,6 +95,10 @@ class Board
 		end
 		@turn = args.has_key?(:turn) ? args[:turn] : 0
 		@placements = args[:skip_placements] ? [] : collect_all_placements
+	end
+
+	def optimal_move
+		#TODO
 	end
 
 	def collect_all_placements
