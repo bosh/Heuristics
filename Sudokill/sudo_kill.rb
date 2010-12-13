@@ -11,8 +11,8 @@ class SudoKiller
 
 	# Communication methods
 	def connect(h, p);	@connection = TCPSocket.open(h, p) end
-	def read;			@connection.readline end
-	def write(str);		@connection.puts(str) end
+	def read;			l = @connection.readline; puts l; l end
+	def write(str);		puts(str); @connection.puts(str + "\n") end
 	def disconnect;		@connection.close end
 	def send_move(row, col, val);	write("#{row} #{col} #{val}") end
 
