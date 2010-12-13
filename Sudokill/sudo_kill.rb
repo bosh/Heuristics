@@ -63,7 +63,8 @@ class SudoKiller
 	def make_move!
 		row, col, val, time_diff = lambda{
 			start = Time.now
-			@moves << move = row, col, val = make_move_for_player_and_board(@player_number, @board.clone)
+			row, col, val = make_move_for_player_and_board(@player_number, @board.clone)
+			@moves << [row,col,val]
 			send_move(row, col, val)
 			[row, col, val, (Time.now - start)]
 		}.call
@@ -97,23 +98,29 @@ class Board
 			end
 		end
 		@turn = args.has_key?[:turn] ? args[:turn] : 0
-		@placements = args[:skip_placements] ? [] : create_all_placements!
+		@placements = args[:skip_placements] ? [] : collect_all_placements
 	end
 
-	def create_all_placements
+	def collect_all_placements
 		positions = if @row && @col
 			collect_limited_options
 		else
 			collect_all_options
 		end
-		#TODO: turn a set of open points into the set of options at each point
+		pos = []
+		positions.each do |(row,col)|
+			possible_values(row,col).each do |val|
+				pos << Placement.new(self, row, col, val)
+			end
+		end
+		pos
 	end
 
 	def collect_limited_options
 		options = []
 		(0..8).each do |i|
-			empty?(@row, i) ? options << [@row, i]
-			empty?(i, @col) ? options << [i, @col]
+			options << [@row, i] if empty?(@row, i)
+			options << [i, @col] if empty?(i, @col)
 		end
 		options.uniq!
 	end
@@ -122,7 +129,7 @@ class Board
 		options = []
 		(0..8).each do |r|
 			(0..8).each do |c|
-				empty?(r, c) ? options << [r,c]
+				options << [r,c] if empty?(r, c)
 			end
 		end
 	end
@@ -133,7 +140,7 @@ class Board
 
 	# Gets all the values in the current row, column, and cell, and finds values from 1 to 9 that are not already included in the set
 	def possible_values(row, col)
-		((1..9).to_a - (row_values(row) += col_values(col) += cell_values(row, col)).uniq).sort
+		((1..9).to_a - (row_values(row) + col_values(col) + cell_values(row, col)).uniq).sort
 	end
 
 	# Returns the values already placed in the given row
@@ -173,7 +180,7 @@ class Placement
 	end
 
 	def result # Delay computation until necessary, but memoize afterwards
-		@child ||= Board.new(:cells => parent.cells, :move => {:row => @row, :col => @col, :val => @val}, :turn = @parent.turn+1)
+		@child ||= Board.new(:cells => parent.cells, :move => {:row => @row, :col => @col, :val => @val}, :turn => @parent.turn+1)
 	end
 end
 
