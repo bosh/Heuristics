@@ -103,7 +103,7 @@ class Board
 	def optimal_move
 		puts self
 		links = collect_all_placements.collect do |p|
-			{:connector => p, :result => p.result, :score => p.score}
+			{:connector => p, :result => p.result, :score => p.score(2)} #TODO, tweak depth based on time
 		end
 		if links.empty?
 			Placement.new(self,6,6,6)
@@ -141,8 +141,12 @@ class Board
 		end
 	end
 
-	def score
-		collect_all_placements.size
+	def score(depth_remaining = 1)
+		if depth_remaining > 0
+			collect_all_placements.inject(0){|s,p| s += p.score(depth_remaining - 1)}
+		else
+			collect_all_placements.size
+		end
 	end
 
 	def collect_all_options
@@ -212,8 +216,8 @@ class Placement
 		result.collect_all_placements
 	end
 
-	def score
-		result.score
+	def score(depth_remaining)
+		result.score(depth_remaining)
 	end
 
 	def to_a
