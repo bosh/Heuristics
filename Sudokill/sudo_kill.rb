@@ -97,7 +97,7 @@ class Board
 				@cells[@row][@col] = args[:move][:val]
 			end
 		end
-		@turn = args.has_key?[:turn] ? args[:turn] : 0
+		@turn = args.has_key?(:turn) ? args[:turn] : 0
 		@placements = args[:skip_placements] ? [] : collect_all_placements
 	end
 
@@ -132,6 +132,7 @@ class Board
 				options << [r,c] if empty?(r, c)
 			end
 		end
+		options
 	end
 
 	def empty?(row, col)
