@@ -101,9 +101,9 @@ class Board
 	end
 
 	def optimal_move
-		puts self
+		depth = (@turn > 2) ? 2 : 1
 		links = collect_all_placements.collect do |p|
-			{:connector => p, :result => p.result, :score => p.score(2)} #TODO, tweak depth based on time
+			{:connector => p, :result => p.result, :score => p.score(depth)} #TODO, tweak depth based on time
 		end
 		if links.empty?
 			Placement.new(self,6,6,6)
