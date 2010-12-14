@@ -102,12 +102,13 @@ class Board
 
 	def optimal_move
 		places = collect_all_placements
-		depth = (@turn > 2) ? 2 : 1
+		depth = (@turn > 3) ? 2 : 1
+		depth += 1 if places.size < 3
 		depth += 1 if places.size < 10
-		depth -= 1 if places.size > 100 && depth > 1
+		depth -= 1 if places.size > 45 && depth > 1
 		puts "Looking through depth: #{depth}"
 		links = places.collect do |p|
-			{:connector => p, :result => p.result, :score => p.score(depth)} #TODO, tweak depth based on time
+			{:connector => p, :result => p.result, :score => p.score(depth, true)} #TODO, tweak depth based on time
 		end
 		if links.empty?
 			Placement.new(self,6,6,6)
@@ -145,9 +146,14 @@ class Board
 		end
 	end
 
-	def score(depth_remaining = 1)
+	def score(depth_remaining = 1, own_turn = true)
 		if depth_remaining > 0
-			collect_all_placements.inject(0){|s,p| s += p.score(depth_remaining - 1)}
+			if own_turn
+				(collect_all_placements.map{|p| p.score(depth_remaining - 1, !own_turn)} << 0).max
+			else
+				(collect_all_placements.map{|p| p.score(depth_remaining - 1, !own_turn)} << 10).min
+				# collect_all_placements.min{|a,b| a.score(depth_remaining - 1, !own_turn) <=> b.score(depth_remaining - 1, !own_turn)}
+			end
 		else
 			collect_all_placements.size
 		end
@@ -220,8 +226,8 @@ class Placement
 		result.collect_all_placements
 	end
 
-	def score(depth_remaining)
-		result.score(depth_remaining)
+	def score(depth_remaining, my_turn)
+		result.score(depth_remaining, my_turn)
 	end
 
 	def to_a
