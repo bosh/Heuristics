@@ -50,16 +50,16 @@ end
 $host = ARGV[0] || 'localhost'
 $port = (ARGV[1] || 20000).to_i
 $filepath = '/tmp/person.txt'
-# connection = TCPSocket.open($host, $port)
-# connection.puts "Person"
+connection = TCPSocket.open($host, $port)
+connection.puts "Person"
 
 n = nil
-# while line = connection.gets
-# 	puts line.chop
-# 	if !n
-# 		n = line.split(":")[1].to_i
-		Person.new(30, $filepath)
-# 		connection.puts $filepath
-# 	end
-# end
-# connection.close
+while line = connection.gets
+	puts line.chop
+	if !n
+		n = line.split(":")[1].to_i
+		Person.new(n, $filepath)
+		connection.puts $filepath
+	end
+end
+connection.close
